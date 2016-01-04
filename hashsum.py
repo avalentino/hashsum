@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
+import io
 import os
 import re
 import sys
@@ -133,7 +136,7 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
     else:
         decoder = None
 
-    with open(path, 'rb') as fd:
+    with io.open(path, 'rb') as fd:
         for data in fd:
             if decoder:
                 data = decoder.decode(data)
@@ -184,7 +187,7 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
     if filenames:
         for filename in filenames:
             check_result = CheckResultData()
-            with open(filename) as fd:
+            with io.open(filename) as fd:
                 for line in fd:
                     ret = process_checksum_file_line(line, algo, quiet, status)
                     check_result.update(ret)
@@ -195,6 +198,8 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
                     result = False
 
     else:
+        filename = '-'
+        check_result = CheckResultData()
         for line in sys.stdin:
             ret = process_checksum_file_line(line, algo, quiet, status)
             result.update(ret)
@@ -245,7 +250,7 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
             hash = hashlib.new(algo)
             if decoder:
                 decoder.reset()
-            with open(filename, 'rb') as fd:
+            with io.open(filename, 'rb') as fd:
                 for data in fd:
                     if decoder:
                         data = decoder.decode(data)
@@ -259,7 +264,21 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
     else:
         filename = '-'
         hash = hashlib.new(algo)
-        for data in sys.stdin.buffer:
+        if sys.version_info[0] < 3:
+            stdin = sys.stdin
+            decoder = None
+            if os.linesep != '\n' and binary:
+                try:
+                    import msvcrt
+                    msvcrt.setmode(sys.stdin, os.O_BINARY)
+                except (ImportError, AttributeError):
+                    msg = _('binary mode is not supported for stdin on this '
+                            'platform')
+                    raise ValueError(msg)
+        else:
+            stdin = sys.stdin.buffer
+
+        for data in stdin:
             if decoder:
                 data = decoder.decode(data)
             hash.update(data)

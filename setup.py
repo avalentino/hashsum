@@ -3,6 +3,7 @@
 
 import os
 import re
+import sys
 from setuptools import setup
 
 
@@ -15,6 +16,9 @@ def get_version():
         data,
         re.MULTILINE)
     return mobj.group('version')
+
+
+install_requires = ['enum34'] if sys.version_info[:2] < (3, 4) else []
 
 
 setup(
@@ -31,13 +35,18 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Topic :: Utilities',
         'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
     keywords='checksum hash',
     py_modules=['hashsum'],
-    # install_requires=[],
+    install_requires=install_requires,
     # extras_require={},
     # package_data={},
     # data_files=[],
