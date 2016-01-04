@@ -20,7 +20,7 @@ gettext.textdomain('hashsum')
 _ = gettext.gettext
 
 
-VERSION = '1.0'
+VERSION = '1.1.dev'
 
 EX_OK = os.EX_OK
 EX_FAILURE = 1
