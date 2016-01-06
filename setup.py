@@ -19,6 +19,13 @@ def get_version():
 
 
 install_requires = ['enum34'] if sys.version_info[:2] < (3, 4) else []
+if not sys.platform.startswith('win'):
+    data_files = [
+        ('share/man/man1', ['man/hashsum.1']),
+        # ('share/locale/it', ['po/it.mo']),
+    ]
+else:
+    data_files = None
 
 
 setup(
@@ -49,7 +56,7 @@ setup(
     install_requires=install_requires,
     # extras_require={},
     # package_data={},
-    # data_files=[],
+    data_files=data_files,
     entry_points={
         'console_scripts': [
             'hashsum=hashsum:main',
