@@ -1,0 +1,63 @@
+.TH HASHSUM "1" "January 2016" "hashsum v1.1" "User Commands"
+.SH NAME
+hashsum \- compute and check message digest with different algorithms
+.SH SYNOPSIS
+.B hashsum
+[\-h] [\-a] [\-\-tag] [\-b | \fB\-t]\fR [\-c | \fB\-l]\fR [\-\-quiet] [\-\-status]
+[\-\-strict] [\-w] [\-\-version]
+[FILE [FILE ...]]
+.SH DESCRIPTION
+The sums are computed as described in [1].
+When checking, the input should be a former output of this program.
+The default mode is to print a line with checksum, a character indicating
+input mode ('*' for binary, space for text), and name for each FILE.
+.PP
+[1] https://docs.python.org/3/library/hashlib.html
+.SH OPTIONS
+.SS "positional arguments:"
+.TP
+FILE
+name of file to process. If not specified, or set to \-,
+data are read form the standard input
+.SS "optional arguments:"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-a\fR, \fB\-\-algorithm\fR
+specify the hashing algorithm (default: MD5)
+.TP
+\fB\-\-tag\fR
+create a BSD\-style checksum
+.TP
+\fB\-b\fR, \fB\-\-binary\fR
+read input data in binary mode
+.TP
+\fB\-t\fR, \fB\-\-text\fR
+read impute data in text mode (default)
+.TP
+\fB\-c\fR, \fB\-\-check\fR
+read checksum(s) form FILE and check than
+.TP
+\fB\-l\fR, \fB\-\-list\-algorithms\fR
+list available hashing algorithms
+.TP
+\fB\-\-version\fR
+show program's version number and exit
+.SS options that are useful only when verifying checksums:
+.TP
+\fB\-\-quiet\fR
+don't print OK for each successfully verified file
+.TP
+\fB\-\-status\fR
+don't output anything, status code shows success
+.TP
+\fB\-\-strict\fR
+exit non\-zero for improperly formatted checksum lines
+.TP
+\fB\-w\fR, \fB\-\-warn\fR
+warn about improperly formatted checksum lines
+.SH COPYRIGHT
+Copyright (C) 2016, Antonio Valentino
+.SH "SEE ALSO"
+md2sum, shasum, sha1sum, sha224sum, sha256sum, sha384sum, sha512sum
