@@ -56,90 +56,108 @@ msgid "binary mode is not supported for stdin on this platform"
 msgstr "la modalità binaria non è suportata per lo standadr input su questa piattaforma"
 
 #: hashsum.py:293
-msgid "Compute and check message digest for different hash algorithms."
-msgstr "Calcola e controlla i digest dei messaggi con diversi algoritmi di hashing"
+msgid ""
+"Compute and check message digest with different hash algorithms.\n"
+"\n"
+"The sums are computed as described in\n"
+"https://docs.python.org/3/library/hashlib.html.\n"
+"When checking, the input should be a former output of this program.\n"
+"The default mode is to print a line with checksum, a character indicating\n"
+"input  mode ('*' for binary, space for text), and name for each FILE.\n"
+msgstr ""
+"Calcola e controlla i digest dei messaggi con diversi algoritmi di hashing"
+"\n"
+"I checksum sono calcolati come descritto in \n"
+"https://docs.python.org/3/library/hashlib.html.\n"
+"Quando si effettua la verifica, l'input dovrebbe essere un output precedentemente generato da questo programma.\n"
+"La modalità di default è stampare una linea con il checksum, un carattere indicante\n"
+"la modalità di input ('*' per la modalità binary, una spazio per la modalità testo), ed il path per ogni FILE.\n"
 
-#: hashsum.py:298
+#: hashsum.py:303
+msgid "Copyright (C) 2016, Antonio Valentino"
+msgstr ""
+
+#: hashsum.py:311
 msgid "specify the hashing algorithm (default: MD5)"
 msgstr "splecifica l'algoritmo di hashing (default: MD5)"
 
-#: hashsum.py:301
+#: hashsum.py:314
 msgid "create a BSD-style checksum"
 msgstr "crea un checksum in stile BSD"
 
-#: hashsum.py:306
-msgid "read imput data in binary mode"
+#: hashsum.py:319
+msgid "read input data in binary mode"
 msgstr "legge i dati di input in modalità binaria"
 
-#: hashsum.py:309
-msgid "read imput data in text mode (default)"
+#: hashsum.py:322
+msgid "read input data in text mode (default)"
 msgstr "legg i dati di input in modalità testo (default)"
 
-#: hashsum.py:314
-msgid "read checksum(s) form FILE and check tham"
+#: hashsum.py:327
+msgid "read checksum(s) form FILE and check them"
 msgstr "legge le checksum da FILE e le verifica"
 
-#: hashsum.py:317
+#: hashsum.py:330
 msgid "list available hashing algorithms"
 msgstr "elenca gli algoritmi di hash disponibili"
 
-#: hashsum.py:321
+#: hashsum.py:334
 msgid "Options that are useful only when verifying checksums"
 msgstr "Opzioni che sono utili solamente quando si velificano le checksum"
 
-#: hashsum.py:324
+#: hashsum.py:337
 msgid "don't print OK for each successfully verified file"
 msgstr "non stampa OK per ogni file verificato con successo"
 
-#: hashsum.py:327
+#: hashsum.py:340
 msgid "don't output anything, status code shows success"
 msgstr "non stampa nulla. Il codice di uscita indica il uccesso"
 
-#: hashsum.py:330
+#: hashsum.py:343
 msgid "exit non-zero for improperly formatted checksum lines"
 msgstr "esce con un codice diverso da zero se incontra linee di checsum non formattate impropriamente"
 
-#: hashsum.py:333
+#: hashsum.py:346
 msgid "warn about improperly formatted checksum lines"
 msgstr "stampa un avvertimento in caso di linee di checksnm formattate impropriamente"
 
-#: hashsum.py:339
-msgid "name of file to proceess. If not specified, or set to -, data are read form the standard input"
+#: hashsum.py:352
+msgid "name of file to process. If not specified, or set to -, data are read form the standard input"
 msgstr "nome del file da processare. Se non specificato, o impostato a -, i dati vengono letti dallo standard input"
 
-#: hashsum.py:351
+#: hashsum.py:364
 msgid "--tag does not support --text mode"
 msgstr "--tag non supporta la modalità --text"
 
-#: hashsum.py:357
+#: hashsum.py:370
 msgid "the --tag option is meaningless when verifying checksums"
 msgstr "l'opzione --tag non ha senso quando si verificano i checksum"
 
-#: hashsum.py:360
+#: hashsum.py:373
 msgid "the --binary and --text options are meaningless when verifying checksums"
 msgstr "le opzioni --binary  --text non hanno senso uando si verificano le checksum"
 
-#: hashsum.py:364
+#: hashsum.py:377
 msgid "the --status option is meaningful only when verifying checksums"
 msgstr "l'opsione --status ha senso solo quando si versificano le checksum"
 
-#: hashsum.py:368
+#: hashsum.py:381
 msgid "the --warn option is meaningful only when verifying checksums"
 msgstr "l'opsione --warn ha senso solo quando si versificano le checksum"
 
-#: hashsum.py:372
+#: hashsum.py:385
 msgid "the --quiet option is meaningful only when verifying checksums"
 msgstr "l'opsione --quiet ha senso solo quando si versificano le checksum"
 
-#: hashsum.py:376
+#: hashsum.py:389
 msgid "the --strict option is meaningful only when verifying checksums"
 msgstr "l'opsione --strict ha senso solo quando si versificano le checksum"
 
-#: hashsum.py:381
+#: hashsum.py:394
 msgid "\"-\" cannot be used if other file names have been specified"
 msgstr "\"-\" non può essere usata se altri filename sono stati specificati"
 
-#: hashsum.py:405
+#: hashsum.py:418
 msgid "Available hash algoritms:"
 msgstr "Algoritmi di hash disponibili:"
 

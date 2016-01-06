@@ -290,8 +290,21 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(prog='hashsum', description=_(
-        'Compute and check message digest for different hash algorithms.'))
+    description = _(
+        '''Compute and check message digest with different hash algorithms.
+
+The sums are computed as described in
+https://docs.python.org/3/library/hashlib.html.
+When checking, the input should be a former output of this program.
+The default mode is to print a line with checksum, a character indicating
+input mode ('*' for binary, space for text), and name for each FILE.
+''')
+
+    epilog = _('''Copyright (C) 2016, Antonio Valentino''')
+
+    parser = argparse.ArgumentParser(
+            prog='hashsum', description=description,
+            epilog=epilog)
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
         default=None, metavar='',
@@ -303,15 +316,15 @@ def get_parser():
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
         '-b', '--binary', action='store_true', default=None,
-        help=_('read imput data in binary mode'))
+        help=_('read input data in binary mode'))
     mode_group.add_argument(
         '-t', '--text', dest='binary', action='store_false',
-        help=_('read imput data in text mode (default)'))
+        help=_('read input data in text mode (default)'))
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '-c', '--check', action='store_true', default=False,
-        help=_('read checksum(s) form FILE and check tham'))
+        help=_('read checksum(s) form FILE and check them'))
     group.add_argument(
         '-l', '--list-algorithms', action='store_true', default=False,
         help=_('list available hashing algorithms'))
@@ -336,7 +349,7 @@ def get_parser():
         '--version', action='version', version='%(prog)s v{}'.format(VERSION))
     parser.add_argument(
         'filenames', nargs='*', metavar='FILE',
-        help=_('name of file to proceess. '
+        help=_('name of file to process. '
                'If not specified, or set to -, data are read form the '
                'standard input'))
 
