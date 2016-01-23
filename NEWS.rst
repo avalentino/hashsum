@@ -4,6 +4,7 @@ hashsum changelog
 hashsum v1.1 (under deveolopment)
 ---------------------------------
 
+* fix IncrementalNewlineDecoder.decoder signature
 * added :file:`NEWS.rst` file
 * added man page
 * improved command line help (also fixed some typos)

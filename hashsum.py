@@ -39,7 +39,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         self.from_ = os.linesep.encode('ascii')
         self.to = b'\n'
 
-    def decode(self, input, errors, final):
+    def decode(self, input, final):
         if self.buffer:
             output = self.buffer + input
         else:
