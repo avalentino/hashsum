@@ -1,11 +1,12 @@
 hashsum changelog
 =================
 
-hashsum v1.0.1 (in deveolopment)
---------------------------------
+hashsum v1.1 (in deveolopment)
+------------------------------
 
 * fix IncrementalNewlineDecoder.decoder signature
 * always call decode with final=True when reading in text mode
+* factorize code for checksum computation
 * added :file:`NEWS.rst` file
 * added man page
 * improved command line help (also fixed some typos)

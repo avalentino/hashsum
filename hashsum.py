@@ -123,6 +123,26 @@ def decode_checksum_file_line(line, algo=None):
     return path, hash, binary, algo
 
 
+def compute_file_checksum(fd, algo='MD5', binary=True):
+    hash_obj = hashlib.new(algo)
+
+    if not binary and os.linesep != '\n':
+        decoder = IncrementalNewlineDecoder()
+    else:
+        decoder = None
+
+    for data in fd:
+        if decoder:
+            data = decoder.decode(data)
+        hash_obj.update(data)
+
+    if decoder:
+        data = decoder.decode(b'', final=True)
+        hash_obj.update(data)
+
+    return hash_obj
+
+
 def process_checksum_file_line(line, algo=None, quiet=False, status=False):
     if len(line) == 0 or line[0] == '#':
         # support for comments in the digest-file
@@ -130,20 +150,8 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
 
     path, hash, binary, algo = decode_checksum_file_line(line, algo)
 
-    hash_obj = hashlib.new(algo)
-    if not binary and os.linesep != '\n':
-        decoder = IncrementalNewlineDecoder()
-    else:
-        decoder = None
-
     with io.open(path, 'rb') as fd:
-        for data in fd:
-            if decoder:
-                data = decoder.decode(data)
-            hash_obj.update(data)
-    if decoder:
-        data = decoder.decode(b'', final=True)
-        hash_obj.update(data)
+        hash_obj = compute_file_checksum(fd, algo, binary)
 
     if hash_obj.hexdigest() == hash:
         result = CheckResult.ok
@@ -237,11 +245,6 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
         raise ValueError(_('binary option set to False in incompatible with '
                            'tag option set to Ture'))
 
-    if not binary and os.linesep != '\n':
-        decoder = IncrementalNewlineDecoder()
-    else:
-        decoder = None
-
     if filenames:
         for filename in filenames:
             if os.path.isdir(filename):
@@ -250,30 +253,19 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
                 log.info(msg.format(filename))
                 continue
 
-            hash = hashlib.new(algo)
-            if decoder:
-                decoder.reset()
             with io.open(filename, 'rb') as fd:
-                for data in fd:
-                    if decoder:
-                        data = decoder.decode(data)
-                    hash.update(data)
-            if decoder:
-                data = decoder.decode(b'', final=True)
-                hash.update(data)
+                hash_obj = compute_file_checksum(fd, algo, binary)
 
-            print_hash_line(filename, hash, tag, binary)
-
+            print_hash_line(filename, hash_obj, tag, binary)
     else:
         filename = '-'
-        hash = hashlib.new(algo)
+
         if sys.version_info[0] < 3:
             stdin = sys.stdin
-            decoder = None
             if os.linesep != '\n' and binary:
                 try:
                     import msvcrt
-                    msvcrt.setmode(sys.stdin, os.O_BINARY)
+                    msvcrt.setmode(stdin, os.O_BINARY)
                 except (ImportError, AttributeError):
                     msg = _('binary mode is not supported for stdin on this '
                             'platform')
@@ -281,15 +273,8 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
         else:
             stdin = sys.stdin.buffer
 
-        for data in stdin:
-            if decoder:
-                data = decoder.decode(data)
-            hash.update(data)
-        if decoder:
-            data = decoder.decode(b'', final=True)
-            hash.update(data)
-
-        print_hash_line(filename, hash, tag, binary)
+        hash_obj = compute_file_checksum(stdin, algo, binary)
+        print_hash_line(filename, hash_obj, tag, binary)
 
 
 def get_parser():
