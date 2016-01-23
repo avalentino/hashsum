@@ -27,9 +27,9 @@ EX_FAILURE = 1
 
 
 DIGEST_LINE_RE = re.compile(
-    '^\s*(?P<hash>\w+) (?P<binary>[\ *])(?P<path>.+)$')
+    '^\s*(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
 DIGEST_LINE_BSD_RE = re.compile(
-    '^\s*(?P<algo>\w+) \((?P<path>.+)\) = (?P<hash>\w+)$')
+    '^\s*(?P<algo>\w+) \((?P<path>.+)\) = (?P<digest>\w+)$')
 
 
 class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
@@ -39,11 +39,11 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         self.from_ = os.linesep.encode('ascii')
         self.to = b'\n'
 
-    def decode(self, input, final):
+    def decode(self, data, final=False):
         if self.buffer:
-            output = self.buffer + input
+            output = self.buffer + data
         else:
-            output = input
+            output = data
 
         self.buffer = b''
         if len(self.from_) > 1:
@@ -58,7 +58,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         return output
 
     def reset(self):
-        super(IncrementalNewlineDecoder, self).reset(self)
+        super(IncrementalNewlineDecoder, self).reset()
         self.buffer = b''
 
     def getstate(self):
@@ -81,7 +81,7 @@ class CheckResultData(object):
         self.n_ok = n_ok
         self.n_failures = n_failures
         self.n_improperly_formatted = n_improperly_formatted
-        self.n_ignored = 0
+        self.n_ignored = n_ignored
 
     def update(self, ret):
         if ret == CheckResult.ok:
@@ -105,7 +105,7 @@ def decode_checksum_file_line(line, algo=None):
             raise ValueError(msg.format(algo, mobj.group('algo')))
         algo = mobj.group('algo')
         path = mobj.group('path')
-        hash = mobj.group('hash')
+        hexdigest = mobj.group('digest')
         binary = True
     else:
         mobj = DIGEST_LINE_RE.match(line)
@@ -113,14 +113,14 @@ def decode_checksum_file_line(line, algo=None):
             raise ValueError(
                 _('unble to decode digest line: "{}"').format(line))
         path = mobj.group('path')
-        hash = mobj.group('hash')
+        hexdigest = mobj.group('digest')
         binary = True if mobj.group('binary') else False
         if algo is None:
             msg = _('no algorithm specified; using MD5')
             warnings.warn(msg)
             algo = 'MD5'
 
-    return path, hash, binary, algo
+    return path, hexdigest, binary, algo
 
 
 def compute_file_checksum(fd, algo='MD5', binary=True):
@@ -148,16 +148,16 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
         # support for comments in the digest-file
         return CheckResult.ignored
 
-    path, hash, binary, algo = decode_checksum_file_line(line, algo)
+    path, hexdigest, binary, algo = decode_checksum_file_line(line, algo)
 
     with io.open(path, 'rb') as fd:
         hash_obj = compute_file_checksum(fd, algo, binary)
 
-    if hash_obj.hexdigest() == hash:
+    if hash_obj.hexdigest() == hexdigest:
         result = CheckResult.ok
     else:
         result = CheckResult.failure
-        if len(hash_obj.hexdigest()) != len(hash):
+        if len(hash_obj.hexdigest()) != len(hexdigest):
             result = CheckResult.improperly_formatted
 
     if not status and result in (CheckResult.ok, CheckResult.failure):
@@ -167,8 +167,8 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
     return result
 
 
-def print_check_results(check_result, filename, quiet=False,
-                        status=False, warn=False, strict=False):
+def print_check_results(check_result, filename, status=False, warn=False,
+                        strict=False):
     ret = True
     log = logging.getLogger('hashsum')
     if check_result.n_failures > 0:
@@ -203,8 +203,8 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
                     ret = process_checksum_file_line(line, algo, quiet, status)
                     check_result.update(ret)
 
-                ret = print_check_results(check_result, filename,
-                                          quiet, status, warn, strict)
+                ret = print_check_results(check_result, filename, status, warn,
+                                          strict)
                 if not ret:
                     result = False
 
@@ -213,26 +213,25 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
         check_result = CheckResultData()
         for line in sys.stdin:
             ret = process_checksum_file_line(line, algo, quiet, status)
-            result.update(ret)
+            check_result.update(ret)
 
-        ret = print_check_results(check_result, filename,
-                                  quiet, status, warn, strict)
+        ret = print_check_results(check_result, filename, status, warn, strict)
         if not ret:
             result = False
 
     return result
 
 
-def print_hash_line(filename, hash, tag=False, binary=False):
-    algo = hash.name
+def print_hash_line(filename, hash_obj, tag=False, binary=False):
+    algo = hash_obj.name
     if algo.upper() in hashlib.algorithms_available:
         algo = algo.upper()
 
     if tag:
-        print('{} ({}) = {}'.format(algo, filename, hash.hexdigest()))
+        print('{} ({}) = {}'.format(algo, filename, hash_obj.hexdigest()))
     else:
         marker = '*' if binary else ' '
-        print('{} {}{}'.format(hash.hexdigest(), marker, filename))
+        print('{} {}{}'.format(hash_obj.hexdigest(), marker, filename))
 
 
 def compute_checksums(filenames, algo=None, binary=None, tag=False):
@@ -344,8 +343,8 @@ input mode ('*' for binary, space for text), and name for each FILE.
     return parser
 
 
-def parse_arguments(parser):
-    args = parser.parse_args()
+def parse_arguments(parser, argv=None):
+    args = parser.parse_args(argv)
 
     if args.tag:
         if args.binary is False:
@@ -395,7 +394,7 @@ def main(argv=None):
     logging.captureWarnings(True)
 
     parser = get_parser()
-    args = parse_arguments(parser)
+    args = parse_arguments(parser, argv)
 
     if args.list_algorithms:
         algoset = hashlib.algorithms_available
