@@ -141,6 +141,9 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
             if decoder:
                 data = decoder.decode(data)
             hash_obj.update(data)
+    if decoder:
+        data = decoder.decode(b'', final=True)
+        hash_obj.update(data)
 
     if hash_obj.hexdigest() == hash:
         result = CheckResult.ok
