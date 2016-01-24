@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import io
 import os
 import sys
 import contextlib
+
+if sys.version_info[0] >= 3:
+    from io import StringIO
+else:
+    from io import BytesIO as StringIO
+
 
 __all__ = (
     'TESTDIRPATH', 'fixpath', 'runin',
@@ -29,9 +34,9 @@ def runin(path):
 class TrapOutput(object):
     def __init__(self, stdout=None, stderr=None):
         if stdout is None:
-            stdout = io.StringIO()
+            stdout = StringIO()
         if stderr is None:
-            stderr = io.StringIO()
+            stderr = StringIO()
 
         self._old_stdout = sys.stdout
         self._old_stderr = sys.stderr

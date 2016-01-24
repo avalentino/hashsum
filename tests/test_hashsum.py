@@ -3,12 +3,16 @@
 
 from __future__ import absolute_import
 
-import io
 import os
 import sys
 import logging
 import unittest
 from ._test_utils import TESTDIRPATH, fixpath, runin, TrapOutput
+
+if sys.version_info[0] >= 3:
+    from io import StringIO
+else:
+    from io import BytesIO as StringIO
 
 fixpath()
 
@@ -28,7 +32,7 @@ class ComputeSumTestCase(unittest.TestCase):
         logging.captureWarnings(True)
 
         self._old_stream = logging.getLogger().handlers[0].stream
-        self.stderr = io.StringIO()
+        self.stderr = StringIO()
         logging.getLogger().handlers[0].stream = self.stderr
 
     def tearDown(self):
@@ -122,7 +126,7 @@ class CheckTestCase(unittest.TestCase):
         logging.captureWarnings(True)
 
         self._old_stream = logging.getLogger().handlers[0].stream
-        self.stderr = io.StringIO()
+        self.stderr = StringIO()
         logging.getLogger().handlers[0].stream = self.stderr
 
     def tearDown(self):

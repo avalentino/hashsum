@@ -198,7 +198,7 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
     if filenames:
         for filename in filenames:
             check_result = CheckResultData()
-            with io.open(filename) as fd:
+            with open(filename) as fd:
                 for line in fd:
                     ret = process_checksum_file_line(line, algo, quiet, status)
                     check_result.update(ret)
@@ -418,7 +418,7 @@ def main(argv=None):
     except Exception as e:
         exitcode = EX_FAILURE
         log = logging.getLogger('hashsum')
-        log.error(str(e))
+        log.error(e)
 
     return exitcode
 
