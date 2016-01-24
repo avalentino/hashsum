@@ -395,26 +395,32 @@ def main(argv=None):
 
     parser = get_parser()
     args = parse_arguments(parser, argv)
+    exitcode = EX_OK
 
-    if args.list_algorithms:
-        algoset = hashlib.algorithms_available
-        algolist = sorted(
-            algo for algo in algoset
-            if algo.isupper() or algo.upper() not in algoset
-        )
-        print(_('Available hash algoritms:'))
-        print('  ', '\n  '.join(algolist), sep='')
-    elif args.check:
-        result = verify_checksums(args.filenames, args.algorithm,
-                                  args.quiet, args.status, args.warn,
-                                  args.strict)
-        if not result:
-            return EX_FAILURE
-    else:
-        compute_checksums(
-            args.filenames, args.algorithm, args.binary, args.tag)
+    try:
+        if args.list_algorithms:
+            algoset = hashlib.algorithms_available
+            algolist = sorted(
+                algo for algo in algoset
+                if algo.isupper() or algo.upper() not in algoset
+            )
+            print(_('Available hash algoritms:'))
+            print('  ', '\n  '.join(algolist), sep='')
+        elif args.check:
+            result = verify_checksums(args.filenames, args.algorithm,
+                                      args.quiet, args.status, args.warn,
+                                      args.strict)
+            if not result:
+                return EX_FAILURE
+        else:
+            compute_checksums(
+                args.filenames, args.algorithm, args.binary, args.tag)
+    except Exception as e:
+        exitcode = EX_FAILURE
+        log = logging.getLogger('hashsum')
+        log.error(str(e))
 
-    return EX_OK
+    return exitcode
 
 
 if __name__ == '__main__':
