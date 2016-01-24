@@ -4,14 +4,15 @@ hashsum changelog
 hashsum v1.1 (in deveolopment)
 ------------------------------
 
-* fix IncrementalNewlineDecoder.decoder signature
-* always call decode with final=True when reading in text mode
-* factorize code for checksum computation
-* trap all Exceptions in main
-* code cleanup
-* added :file:`NEWS.rst` file
-* added man page
-* improved command line help (also fixed some typos)
+* Fixed IncrementalNewlineDecoder.decoder signature
+* Always call decode with final=True when reading in text mode
+* Factorized code for checksum computation
+* All `Exceptions` are now trapped in the `main` function
+* Added unit testing
+* Code cleanup
+* Added :file:`NEWS.rst` file
+* Added man page
+* Improved command line help (also fixed some typos)
 
 
 hashsum v1.0 (04/01/2016)
