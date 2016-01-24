@@ -13,6 +13,7 @@ hashsum v1.1 (in deveolopment)
 * Added :file:`NEWS.rst` file
 * Added man page
 * Improved command line help (also fixed some typos)
+* Enabled automatic testing with travis-ci
 
 
 hashsum v1.0 (04/01/2016)
