@@ -38,7 +38,7 @@ setup(
     author='Antonio Valentino',
     author_email='antonio.valentino@tiscli.it',
     license='BSD',
-    platforms='Platform Independent',
+    platforms=['any'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: End Users/Desktop',
