@@ -1,8 +1,14 @@
 hashsum changelog
 =================
 
-hashsum v1.1 (in deveolopment)
-------------------------------
+hashsum v1.2 (in development)
+-----------------------------
+
+* TBW
+
+
+hashsum v1.1 (30/01/2016)
+-------------------------
 
 * Fixed IncrementalNewlineDecoder.decoder signature
 * Always call decode with final=True when reading in text mode
