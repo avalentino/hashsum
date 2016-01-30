@@ -1,10 +1,10 @@
 hashsum changelog
 =================
 
-hashsum v1.2 (in development)
------------------------------
+hashsum v1.1.1 (in development)
+-------------------------------
 
-* TBW
+* include man pages in the tarball
 
 
 hashsum v1.1 (30/01/2016)
