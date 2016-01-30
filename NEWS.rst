@@ -1,8 +1,8 @@
 hashsum changelog
 =================
 
-hashsum v1.1.1 (in development)
--------------------------------
+hashsum v1.1.1 (30/01/2016)
+---------------------------
 
 * include man pages in the tarball
 
