@@ -436,7 +436,7 @@ def main(argv=None):
     except Exception as e:
         exitcode = EX_FAILURE
         log = logging.getLogger('hashsum')
-        log.error(e)
+        log.error(str(e))
 
     return exitcode
 
