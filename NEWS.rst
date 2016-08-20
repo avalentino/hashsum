@@ -1,10 +1,10 @@
 hashsum changelog
 =================
 
-hashsum v1.2 (in development)
------------------------------
+hashsum v1.1.2 (in development)
+-------------------------------
 
-* TBW
+* better iteration on data blocks
 
 
 hashsum v1.1.1 (30/01/2016)

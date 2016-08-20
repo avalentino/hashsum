@@ -14,13 +14,14 @@ import hashlib
 import logging
 import argparse
 import warnings
+import functools
 
 
 gettext.textdomain('hashsum')
 _ = gettext.gettext
 
 
-VERSION = '1.2.dev0'
+VERSION = '1.1.2.dev0'
 
 EX_OK = os.EX_OK
 EX_FAILURE = 1
@@ -30,6 +31,23 @@ DIGEST_LINE_RE = re.compile(
     '^\s*(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
 DIGEST_LINE_BSD_RE = re.compile(
     '^\s*(?P<algo>\w+) \((?P<path>.+)\) = (?P<digest>\w+)$')
+
+BLOCKSIZE = io.DEFAULT_BUFFER_SIZE * 1024
+
+
+def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
+    '''Iterator on file-like objects that read blocks of the specified size
+
+    The `fd` parameter must be a binary or text file-like object opened
+    for reading.
+
+    The `blocksize` parameter defaults to `io.DEFAULT_BUFFER_SIZE`.
+
+    '''
+
+    guard = '' if isinstance(fd, io.TextIOBase) else b''
+
+    return iter(functools.partial(fd.read, blocksize), guard)
 
 
 class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
@@ -131,7 +149,7 @@ def compute_file_checksum(fd, algo='MD5', binary=True):
     else:
         decoder = None
 
-    for data in fd:
+    for data in blockiter(fd, BLOCKSIZE):
         if decoder:
             data = decoder.decode(data)
         hash_obj.update(data)
