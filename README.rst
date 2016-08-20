@@ -1,12 +1,18 @@
 hashsum
 =======
 
+Python drop-in replacement for md5sum, and co.
+**********************************************
+
+
 :copiright: 2016 Antonio Valentino <antonio dot valentino at tiscali dot it>
 
 .. image:: https://travis-ci.org/avalentino/hashsum.svg?branch=master
     :target: https://travis-ci.org/avalentino/hashsum
 
-Python drop-in replacement for md5sum, and co.
+
+Usage
+-----
 
 ::
 
@@ -22,7 +28,7 @@ Python drop-in replacement for md5sum, and co.
     for each FILE.
 
     [1]  https://docs.python.org/3/library/hashlib.html
-    
+
     positional arguments:
       FILE                  name of file to process. If not specified,
                             or set to -, data are read form the
@@ -47,7 +53,15 @@ Python drop-in replacement for md5sum, and co.
                             verified file
       --status              don't output anything, status code shows
                             success
-      --strict              exit non-zero for improperly formatted 
+      --strict              exit non-zero for improperly formatted
                             checksum lines
       -w, --warn            warn about improperly formatted checksum
                             lines
+
+
+Package testing
+---------------
+
+::
+
+    $ python setyp.py test
