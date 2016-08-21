@@ -4,13 +4,13 @@ hashsum changelog
 hashsum v1.1.2 (in development)
 -------------------------------
 
-* better iteration on data blocks
+* Better iteration on data blocks
 
 
 hashsum v1.1.1 (30/01/2016)
 ---------------------------
 
-* include man pages in the tarball
+* Include man pages in the tarball
 
 
 hashsum v1.1 (30/01/2016)
