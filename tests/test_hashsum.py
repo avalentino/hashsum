@@ -8,7 +8,9 @@ import sys
 import logging
 import unittest
 import warnings
-from ._test_utils import TESTDIRPATH, fixpath, runin, TrapOutput, catch_warnings
+from ._test_utils import (
+    TESTDIRPATH, fixpath, runin, TrapOutput, catch_warnings
+)
 
 
 if sys.version_info[0] >= 3:
@@ -19,7 +21,9 @@ else:
 
 fixpath()
 
+
 import hashsum
+
 
 DATAPATH = os.path.join(TESTDIRPATH, 'data')
 

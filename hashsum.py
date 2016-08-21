@@ -354,7 +354,8 @@ class ChecksumCalculator(object):
         if self.multi_thread:
             return _compute_file_checksum_threading(fd, self.algo, self.binary)
         else:
-            return _compute_file_checksum_sequential(fd, self.algo, self.binary)
+            return _compute_file_checksum_sequential(fd, self.algo,
+                                                     self.binary)
 
     def compute_checksums(self, filenames):
         if filenames:
@@ -384,8 +385,8 @@ class ChecksumCalculator(object):
                         import msvcrt
                         msvcrt.setmode(stdin, os.O_BINARY)
                     except (ImportError, AttributeError):
-                        msg = _('binary mode is not supported for stdin on this '
-                                'platform')
+                        msg = _('binary mode is not supported for stdin on '
+                                'this platform')
                         raise ValueError(msg)
                     else:
                         old_mode = os.O_TEXT
@@ -414,8 +415,8 @@ input mode ('*' for binary, space for text), and name for each FILE.
     epilog = _('''Copyright (C) 2016, Antonio Valentino''')
 
     parser = argparse.ArgumentParser(
-            prog='hashsum', description=description,
-            epilog=epilog)
+            prog='hashsum', description=description, epilog=epilog)
+
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
         default=None, metavar='',
