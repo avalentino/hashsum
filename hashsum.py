@@ -30,7 +30,7 @@ EX_FAILURE = 1
 DIGEST_LINE_RE = re.compile(
     '^\s*(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
 DIGEST_LINE_BSD_RE = re.compile(
-    '^\s*(?P<algo>\w+) \((?P<path>.+)\) = (?P<digest>\w+)$')
+    '^\s*(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
 
 BLOCKSIZE = io.DEFAULT_BUFFER_SIZE * 1024
 

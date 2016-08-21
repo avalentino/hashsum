@@ -169,6 +169,14 @@ class CheckTestCase(unittest.TestCase):
         self.assertEqual(exitcode, hashsum.EX_FAILURE)
         self.assertTrue('ERROR' in out.stderr.getvalue())
 
+    def test_binary_openssl(self):
+        argv = [
+            '-c', os.path.join(DATAPATH, 'SHASUM_openssl.txt'),
+        ]
+        with runin(DATAPATH), TrapOutput():
+            exitcode = hashsum.main(argv)
+        self.assertEqual(exitcode, hashsum.EX_OK)
+
     def test_text(self):
         if sys.platform.startswith('win'):
             checksumfile = 'MD5SUM_text_win.txt'

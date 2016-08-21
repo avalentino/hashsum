@@ -4,6 +4,7 @@ hashsum changelog
 hashsum v1.1.2 (in development)
 -------------------------------
 
+* Improved compatibility with the OpenSSL command line tool
 * Better iteration on data blocks
 
 
