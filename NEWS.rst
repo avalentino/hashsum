@@ -6,6 +6,7 @@ hashsum v1.1.2 (in development)
 
 * Improved compatibility with the OpenSSL command line tool
 * Better iteration on data blocks
+* Optional threaded hash computation
 
 
 hashsum v1.1.1 (30/01/2016)

@@ -32,7 +32,9 @@ DIGEST_LINE_RE = re.compile(
 DIGEST_LINE_BSD_RE = re.compile(
     '^\s*(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
 
-BLOCKSIZE = io.DEFAULT_BUFFER_SIZE * 1024
+BLOCKSIZE = io.DEFAULT_BUFFER_SIZE * 128
+NWORKERS = 2
+QUEUE_LEN = 10
 
 
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
@@ -141,7 +143,7 @@ def decode_checksum_file_line(line, algo=None):
     return path, hexdigest, binary, algo
 
 
-def compute_file_checksum(fd, algo='MD5', binary=True):
+def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
     hash_obj = hashlib.new(algo)
 
     if not binary and os.linesep != '\n':
@@ -159,6 +161,52 @@ def compute_file_checksum(fd, algo='MD5', binary=True):
         hash_obj.update(data)
 
     return hash_obj
+
+
+def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
+    import queue
+    import threading
+
+    hash_obj = hashlib.new(algo)
+
+    if not binary and os.linesep != '\n':
+        decoder = IncrementalNewlineDecoder()
+    else:
+        decoder = None
+
+    def worker(queue, hash_obj, decoder=None):
+        for data in iter(queue.get, None):
+            if decoder:
+                data = decoder.decode(data)
+            hash_obj.update(data)
+            queue.task_done()
+        else:
+            if decoder:
+                data = decoder.decode(b'', final=True)
+                hash_obj.update(data)
+            queue.task_done()
+
+    queue = queue.Queue(QUEUE_LEN)
+    worker_threads = []
+    for i in range(NWORKERS):
+        t = threading.Thread(target = worker, args=(queue, hash_obj, decoder))
+        t.start()
+        worker_threads.append(t)
+
+    for data in blockiter(fd, BLOCKSIZE):
+        queue.put(data)
+
+    for i in range(NWORKERS):
+        queue.put(None)
+    queue.join()
+    for t in worker_threads:
+        t.join()
+
+    return hash_obj
+
+
+#compute_file_checksum = _compute_file_checksum_threading
+compute_file_checksum = _compute_file_checksum_sequential
 
 
 def process_checksum_file_line(line, algo=None, quiet=False, status=False):
@@ -437,6 +485,7 @@ def main(argv=None):
         exitcode = EX_FAILURE
         log = logging.getLogger('hashsum')
         log.error(str(e))
+        log.exception(str(e))
 
     return exitcode
 
