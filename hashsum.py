@@ -173,10 +173,10 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
 
     if hash_obj.hexdigest() == hexdigest:
         result = CheckResult.ok
+    elif len(hash_obj.hexdigest()) != len(hexdigest):
+        result = CheckResult.improperly_formatted
     else:
         result = CheckResult.failure
-        if len(hash_obj.hexdigest()) != len(hexdigest):
-            result = CheckResult.improperly_formatted
 
     if not status and result in (CheckResult.ok, CheckResult.failure):
         if (result == CheckResult.failure) or not quiet:
@@ -221,10 +221,10 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
                     ret = process_checksum_file_line(line, algo, quiet, status)
                     check_result.update(ret)
 
-                ret = print_check_results(check_result, filename, status, warn,
-                                          strict)
-                if not ret:
-                    result = False
+            ret = print_check_results(check_result, filename, status, warn,
+                                      strict)
+            if not ret:
+                result = False
 
     else:
         filename = '-'
