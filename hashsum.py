@@ -259,7 +259,7 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
         algo = 'MD5'
 
     if tag and not binary:
-        raise ValueError(_('binary option set to False in incompatible with '
+        raise ValueError(_('binary option set to False is incompatible with '
                            'tag option set to Ture'))
 
     if filenames:
