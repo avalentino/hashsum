@@ -14,7 +14,8 @@ DATAFILE = 'hashsum_test_data.dat'
 DATASIZE = 1024**3      # 1GB
 CHUNKSIZE = 1024**2     # 1MB
 BASEBLOCKSIZE = 8192
-NRUNS = 5
+NRUNS = 3
+ALGO = 'SHA512'     # 'MD5'
 RESULTFILE = 'benchmarks.dat'
 RESULTPLOT = 'benchmarks.svg'
 
@@ -120,28 +121,30 @@ def main():
     print('DATAFILE:', DATAFILE)
     print('DATASIZE: {:.3f} MB'.format(DATASIZE / 1024**2))
 
-    print('Test sequential MD5 hash computetion')
+    print('Test sequential {} hash computetion'.format(ALGO))
 
     functions = (
-        '_compute_file_checksum_sequential',
+        #'_compute_file_checksum_multiprocessing',
         '_compute_file_checksum_threading',
-        # '_compute_file_checksum_multiprocessing',
+        '_compute_file_checksum_sequential',
     )
     # multipliers = (1024, 768, 512, 384, 256, 192, 128, 64, 32, 16, 8, 4)
     multipliers = (1024, 512, 256, 128, 64, 32, 16, 8, 4)
     data = collections.defaultdict(dict)
 
-    for function in functions:
-        for multiplier in multipliers:
-            blocksize = BASEBLOCKSIZE * multiplier
+    for multiplier in multipliers:
+        blocksize = BASEBLOCKSIZE * multiplier
+
+        for function in functions:
 
             print('function:', function)
             print('blocksize: {:.1f} KB ({} * {})'.format(
                 blocksize/1024, BASEBLOCKSIZE, multiplier))
 
             t = timeit.timeit(
-                'hashsum.main(["-a=MD5", "%s"])' % DATAFILE,
+                'hashsum.main(["-a=%s", "%s"])' % (ALGO, DATAFILE),
                 'import hashsum; '
+                'hashsum_QUEUE_LEN = 0; '
                 'hashsum.compute_file_checksum = hashsum.%s; '
                 'hashsum.BLOCKSIZE = %s' % (function, blocksize),
                 number=NRUNS) / NRUNS

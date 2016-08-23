@@ -34,7 +34,7 @@ DIGEST_LINE_BSD_RE = re.compile(
 
 
 BLOCKSIZE = 1024 * 1024     # 1MB
-_QUEUE_LEN = 10             # max 10MB
+_QUEUE_LEN = 50             # max 50MB
 
 
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
