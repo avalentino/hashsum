@@ -34,7 +34,7 @@ def generate_dataset(filename, size, chunksize=CHUNKSIZE):
     print('Dataset generation completed')
 
 
-def save_data(data, filename):
+def save_data(data, filename=RESULTFILE):
     import pickle
     with open(filename, 'wb') as fd:
         pickle.dump(data, fd)
@@ -44,22 +44,44 @@ def plot_data(testdata):
     import numpy as np
     from matplotlib import pyplot as plt
 
-    plt.figure()
+    plt.figure(figsize=(14, 6))
+
+    plt.subplot(1, 2, 1)
+
+    label = 'sequential'
+    data = testdata['_compute_file_checksum_sequential']
+    x_seq = np.asarray(sorted(data.keys()), dtype='float')
+    y_seq = np.asarray([data[key] for key in x_seq])
+    x_seq *= BASEBLOCKSIZE / 1024.
+    plt.plot(x_seq, y_seq, 'o-', label=label)
+
     plt.grid(True)
     plt.hold(True)
 
-    for function, nworkers in testdata:
-        label = function[len('_compute_file_checksum_'):]
-        data = testdata[(function, nworkers)]
-        x = np.asarray(sorted(data.keys()), dtype='float')
-        y = np.asarray([data[key] for key in x])
-        x *= BASEBLOCKSIZE
-        plt.plot(x / 1024, y, 'o-', label='%s (%d workers)' % (label, nworkers))
+    label = 'threading'
+    data = testdata['_compute_file_checksum_threading']
+    x_thr = np.asarray(sorted(data.keys()), dtype='float')
+    y_thr = np.asarray([data[key] for key in x_thr])
+    x_thr *= BASEBLOCKSIZE / 1024
+    plt.plot(x_thr, y_thr, 'o-', label=label)
 
     plt.xlabel('Size [KB]')
     plt.ylabel('Time [s]')
     plt.title('Checksum computation benchmark')
-    plt.legend()
+    plt.legend(loc='best')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up')
+    plt.grid(True)
+    plt.hold(True)
+    plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
+             label='Speed up\nvs max seq speed')
+    plt.ylim([-5., plt.ylim()[-1]])
+    plt.vlines([x_seq[np.argmin(y_seq)], x_thr[np.argmin(y_thr)]], *plt.ylim())
+    plt.xlabel('Size [KB]')
+    plt.ylabel('Speed up [%]')
+    plt.title('Speed up')
+    plt.legend(loc='best')
 
     plt.savefig(RESULTPLOT)
     plt.show()
@@ -77,21 +99,18 @@ def main():
 
     print('Test sequential MD5 hash computetion')
 
-    testcfg = (
-        ('_compute_file_checksum_sequential', 0),
-        ('_compute_file_checksum_threading', 1),
-        ('_compute_file_checksum_threading', 2),
-        ('_compute_file_checksum_threading', 3),
+    functions = (
+        '_compute_file_checksum_sequential',
+        '_compute_file_checksum_threading',
     )
     multipliers = (1024, 768, 512, 384, 256, 192, 128, 64, 32, 16, 8, 4)
     data = collections.defaultdict(dict)
 
-    for function, nworkers in testcfg:
+    for function in functions:
         for multiplier in multipliers:
             blocksize = BASEBLOCKSIZE * multiplier
 
             print('function:', function)
-            print('nworkers:', nworkers)
             print('blocksize: {:.1f} KB ({} * {})'.format(
                 blocksize/1024, BASEBLOCKSIZE, multiplier))
 
@@ -99,13 +118,12 @@ def main():
                 'hashsum.main(["-a=MD5", "%s"])' % DATAFILE,
                 'import hashsum; '
                 'hashsum.compute_file_checksum = hashsum.%s; '
-                'hashsum.BLOCKSIZE = %s;'
-                'hashsum.NWORKERS = %d' % (function, blocksize, nworkers),
+                'hashsum.BLOCKSIZE = %s' % (function, blocksize),
                 number=NRUNS)
 
             print('Mean execution time: %f sec' % (t / NRUNS))
 
-            data[(function, nworkers)][multiplier] = t
+            data[function][multiplier] = t
 
     save_data(data, RESULTFILE)
 

@@ -32,9 +32,9 @@ DIGEST_LINE_RE = re.compile(
 DIGEST_LINE_BSD_RE = re.compile(
     '^\s*(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
 
-BLOCKSIZE = io.DEFAULT_BUFFER_SIZE * 128
-NWORKERS = 2
-QUEUE_LEN = 10
+
+BLOCKSIZE = 1024 * 1024     # 1MB
+_QUEUE_LEN = 10             # max 10MB
 
 
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
@@ -164,7 +164,10 @@ def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
 
 
 def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
-    import queue
+    try:
+        import queue
+    except ImportError:
+        import Queue as queue
     import threading
 
     hash_obj = hashlib.new(algo)
@@ -174,38 +177,36 @@ def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
     else:
         decoder = None
 
-    def worker(queue, hash_obj, decoder=None):
-        for data in iter(queue.get, None):
+    def worker(task_queue, hash_obj, decoder=None):
+        for data in iter(task_queue.get, None):
             if decoder:
                 data = decoder.decode(data)
             hash_obj.update(data)
-            queue.task_done()
+            task_queue.task_done()
         else:
             if decoder:
                 data = decoder.decode(b'', final=True)
                 hash_obj.update(data)
-            queue.task_done()
+            task_queue.task_done()
 
-    queue = queue.Queue(QUEUE_LEN)
-    worker_threads = []
-    for i in range(NWORKERS):
-        t = threading.Thread(target = worker, args=(queue, hash_obj, decoder))
-        t.start()
-        worker_threads.append(t)
+    task_queue = queue.Queue(_QUEUE_LEN)
+    worker = threading.Thread(
+        name='worker', target=worker, args=(task_queue, hash_obj, decoder))
+    worker.start()
 
-    for data in blockiter(fd, BLOCKSIZE):
-        queue.put(data)
+    try:
+        for data in blockiter(fd, BLOCKSIZE):
+            task_queue.put(data)
+    finally:
+        task_queue.put(None)
 
-    for i in range(NWORKERS):
-        queue.put(None)
-    queue.join()
-    for t in worker_threads:
-        t.join()
+    task_queue.join()
+    worker.join()
 
     return hash_obj
 
 
-#compute_file_checksum = _compute_file_checksum_threading
+# compute_file_checksum = _compute_file_checksum_threading
 compute_file_checksum = _compute_file_checksum_sequential
 
 
