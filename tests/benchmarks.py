@@ -47,23 +47,32 @@ def plot_data(testdata):
     plt.figure(figsize=(14, 6))
 
     plt.subplot(1, 2, 1)
-
-    label = 'sequential'
-    data = testdata['_compute_file_checksum_sequential']
-    x_seq = np.asarray(sorted(data.keys()), dtype='float')
-    y_seq = np.asarray([data[key] for key in x_seq])
-    x_seq *= BASEBLOCKSIZE / 1024.
-    plt.plot(x_seq, y_seq, 'o-', label=label)
-
     plt.grid(True)
     plt.hold(True)
 
-    label = 'threading'
-    data = testdata['_compute_file_checksum_threading']
-    x_thr = np.asarray(sorted(data.keys()), dtype='float')
-    y_thr = np.asarray([data[key] for key in x_thr])
-    x_thr *= BASEBLOCKSIZE / 1024
-    plt.plot(x_thr, y_thr, 'o-', label=label)
+    if '_compute_file_checksum_sequential' in testdata:
+        label = 'sequential'
+        data = testdata['_compute_file_checksum_sequential']
+        x_seq = np.asarray(sorted(data.keys()), dtype='float')
+        y_seq = np.asarray([data[key] for key in x_seq])
+        x_seq *= BASEBLOCKSIZE / 1024.
+        plt.plot(x_seq, y_seq, 'o-', label=label)
+
+    if '_compute_file_checksum_threading' in testdata:
+        label = 'threading'
+        data = testdata['_compute_file_checksum_threading']
+        x_thr = np.asarray(sorted(data.keys()), dtype='float')
+        y_thr = np.asarray([data[key] for key in x_thr])
+        x_thr *= BASEBLOCKSIZE / 1024
+        plt.plot(x_thr, y_thr, 'o-', label=label)
+
+    if '_compute_file_checksum_multiprocessing' in testdata:
+        label = 'multiprocessing'
+        data = testdata['_compute_file_checksum_multiprocessing']
+        x_mpr = np.asarray(sorted(data.keys()), dtype='float')
+        y_mpr = np.asarray([data[key] for key in x_mpr])
+        x_mpr *= BASEBLOCKSIZE / 1024
+        plt.plot(x_mpr, y_mpr, 'o-', label=label)
 
     plt.xlabel('Size [KB]')
     plt.ylabel('Time [s]')
@@ -71,13 +80,27 @@ def plot_data(testdata):
     plt.legend(loc='best')
 
     plt.subplot(1, 2, 2)
-    plt.plot(x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up')
     plt.grid(True)
     plt.hold(True)
-    plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
-             label='Speed up\nvs max seq speed')
+
+    xvlines = [x_seq[np.argmin(y_seq)]]
+
+    if '_compute_file_checksum_threading' in testdata:
+        plt.plot(
+            x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up (thr)')
+        plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
+                 label='Speed up (thr)\nvs max seq speed')
+        xvlines.append(x_thr[np.argmin(y_thr)])
+
+    if '_compute_file_checksum_multiprocessing' in testdata:
+        plt.plot(
+            x_seq, (y_seq / y_mpr - 1) * 100., 'o-', label='Speed up (mpr)')
+        plt.plot(x_seq, (np.min(y_seq) / y_mpr - 1) * 100., 'o-',
+                 label='Speed up (mpr)\nvs max seq speed')
+        xvlines.append(x_mpr[np.argmin(y_mpr)])
+
     plt.ylim([-5., plt.ylim()[-1]])
-    plt.vlines([x_seq[np.argmin(y_seq)], x_thr[np.argmin(y_thr)]], *plt.ylim())
+    plt.vlines(xvlines, *plt.ylim())
     plt.xlabel('Size [KB]')
     plt.ylabel('Speed up [%]')
     plt.title('Speed up')
@@ -102,8 +125,10 @@ def main():
     functions = (
         '_compute_file_checksum_sequential',
         '_compute_file_checksum_threading',
+        # '_compute_file_checksum_multiprocessing',
     )
-    multipliers = (1024, 768, 512, 384, 256, 192, 128, 64, 32, 16, 8, 4)
+    # multipliers = (1024, 768, 512, 384, 256, 192, 128, 64, 32, 16, 8, 4)
+    multipliers = (1024, 512, 256, 128, 64, 32, 16, 8, 4)
     data = collections.defaultdict(dict)
 
     for function in functions:
@@ -119,9 +144,9 @@ def main():
                 'import hashsum; '
                 'hashsum.compute_file_checksum = hashsum.%s; '
                 'hashsum.BLOCKSIZE = %s' % (function, blocksize),
-                number=NRUNS)
+                number=NRUNS) / NRUNS
 
-            print('Mean execution time: %f sec' % (t / NRUNS))
+            print('Mean execution time: %f sec' % t)
 
             data[function][multiplier] = t
 

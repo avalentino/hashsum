@@ -163,6 +163,50 @@ def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
     return hash_obj
 
 
+class _FakeHashObject(object):
+    def __init__(self, hash_obj):
+        self.block_size = hash_obj.block_size
+        self.name = hash_obj.name
+        self.digest_size = hash_obj.digest_size
+        self._digest = hash_obj.digest()
+        self._hexdigest = hash_obj.hexdigest()
+
+    def copy(self):
+        raise NotImplementedError(
+            'the "copy" method is not omplemented in FakeHashObject')
+
+    def digest(self):
+        return self._digest
+
+    def hexdigest(self):
+        return self._hexdigest
+
+    def update(self):
+        raise NotImplementedError(
+            'the "update" method is not omplemented in FakeHashObject')
+
+
+def _worker(tasks, results, algo='MD5', decoder=None):
+    hash_obj = hashlib.new(algo)
+    try:
+        for data in iter(tasks.get, None):
+            if decoder:
+                data = decoder.decode(data)
+            hash_obj.update(data)
+            tasks.task_done()
+        else:
+            if decoder:
+                data = decoder.decode(b'', final=True)
+                hash_obj.update(data)
+            tasks.task_done()  # for None
+    finally:
+        results.put(_FakeHashObject(hash_obj))
+
+    if hasattr(results, 'join_thread'):
+        results.close()
+        results.join_thread()
+
+
 def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
     try:
         import queue
@@ -170,28 +214,16 @@ def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
         import Queue as queue
     import threading
 
-    hash_obj = hashlib.new(algo)
-
     if not binary and os.linesep != '\n':
         decoder = IncrementalNewlineDecoder()
     else:
         decoder = None
 
-    def worker(task_queue, hash_obj, decoder=None):
-        for data in iter(task_queue.get, None):
-            if decoder:
-                data = decoder.decode(data)
-            hash_obj.update(data)
-            task_queue.task_done()
-        else:
-            if decoder:
-                data = decoder.decode(b'', final=True)
-                hash_obj.update(data)
-            task_queue.task_done()
-
     task_queue = queue.Queue(_QUEUE_LEN)
-    worker = threading.Thread(
-        name='worker', target=worker, args=(task_queue, hash_obj, decoder))
+    result_queue = queue.Queue()
+
+    args = (task_queue, result_queue, algo, decoder)
+    worker = threading.Thread(name='worker', target=_worker, args=args)
     worker.start()
 
     try:
@@ -201,11 +233,42 @@ def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
         task_queue.put(None)
 
     task_queue.join()
+    hash_obj = result_queue.get()
     worker.join()
 
     return hash_obj
 
 
+def _compute_file_checksum_multiprocessing(fd, algo='MD5', binary=True):
+    import multiprocessing as mp
+
+    if not binary and os.linesep != '\n':
+        decoder = IncrementalNewlineDecoder()
+    else:
+        decoder = None
+
+    task_queue = mp.JoinableQueue(_QUEUE_LEN)
+    result_queue = mp.Queue()
+
+    args = (task_queue, result_queue, algo, decoder)
+    worker = mp.Process(name='worker', target=_worker, args=args)
+    worker.start()
+
+    try:
+        for data in blockiter(fd, BLOCKSIZE):
+            task_queue.put(data)
+    finally:
+        task_queue.put(None)
+        task_queue.close()
+
+    task_queue.join()
+    hash_obj = result_queue.get()
+    worker.join()
+
+    return hash_obj
+
+
+# compute_file_checksum = _compute_file_checksum_multiprocessing
 # compute_file_checksum = _compute_file_checksum_threading
 compute_file_checksum = _compute_file_checksum_sequential
 
