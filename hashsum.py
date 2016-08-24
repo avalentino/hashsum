@@ -116,33 +116,6 @@ class CheckResultData(object):
             raise ValueError(_('unexpected value: {}').format(ret))
 
 
-def decode_checksum_file_line(line, algo=None):
-    mobj = DIGEST_LINE_BSD_RE.match(line)
-    if mobj:
-        if algo is not None and algo != mobj.group('algo'):
-            msg = _('specified hashing algorithm ({}) is different form '
-                    'the one used in the digest file ({})')
-            raise ValueError(msg.format(algo, mobj.group('algo')))
-        algo = mobj.group('algo')
-        path = mobj.group('path')
-        hexdigest = mobj.group('digest')
-        binary = True
-    else:
-        mobj = DIGEST_LINE_RE.match(line)
-        if not mobj:
-            raise ValueError(
-                _('unble to decode digest line: "{}"').format(line))
-        path = mobj.group('path')
-        hexdigest = mobj.group('digest')
-        binary = True if mobj.group('binary') else False
-        if algo is None:
-            msg = _('no algorithm specified; using MD5')
-            warnings.warn(msg)
-            algo = 'MD5'
-
-    return path, hexdigest, binary, algo
-
-
 def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
     hash_obj = hashlib.new(algo)
 
@@ -163,7 +136,7 @@ def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
     return hash_obj
 
 
-class _FakeHashObject(object):
+class HashObjectData(object):
     def __init__(self, hash_obj):
         self.block_size = hash_obj.block_size
         self.name = hash_obj.name
@@ -171,19 +144,11 @@ class _FakeHashObject(object):
         self._digest = hash_obj.digest()
         self._hexdigest = hash_obj.hexdigest()
 
-    def copy(self):
-        raise NotImplementedError(
-            'the "copy" method is not omplemented in FakeHashObject')
-
     def digest(self):
         return self._digest
 
     def hexdigest(self):
         return self._hexdigest
-
-    def update(self):
-        raise NotImplementedError(
-            'the "update" method is not omplemented in FakeHashObject')
 
 
 def _worker(tasks, results, algo='MD5', decoder=None):
@@ -200,7 +165,7 @@ def _worker(tasks, results, algo='MD5', decoder=None):
                 hash_obj.update(data)
             tasks.task_done()  # for None
     finally:
-        results.put(_FakeHashObject(hash_obj))
+        results.put(HashObjectData(hash_obj))
 
 
 def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
@@ -235,148 +200,204 @@ def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
     return hash_obj
 
 
-def compute_file_checksum(fd, algo='MD5', binary=True, multi_thread=False):
-    if multi_thread:
-        return _compute_file_checksum_threading(fd, algo, binary)
-    else:
-        return _compute_file_checksum_sequential(fd, algo, binary)
+class ChecksumVerifier(object):
+    def __init__(self, algo=None, quiet=False, status=False, warn=False,
+                 strict=False, multi_thread=False):
+        self.algo = algo
+        self.quiet = quiet
+        self.status = status
+        self.warn = warn
+        self.strict = strict
+        self.multi_thread = multi_thread
 
+    def _compute_file_checksum(self, fd, algo, binary):
+        if self.multi_thread:
+            return _compute_file_checksum_threading(fd, algo, binary)
+        else:
+            return _compute_file_checksum_sequential(fd, algo, binary)
 
-def process_checksum_file_line(line, algo=None, quiet=False, status=False,
-                               multi_thread=False):
-    if len(line) == 0 or line[0] == '#':
-        # support for comments in the digest-file
-        return CheckResult.ignored
+    def decode_checksum_file_line(self, line):
+        mobj = DIGEST_LINE_BSD_RE.match(line)
+        if mobj:
+            if self.algo is not None and self.algo != mobj.group('algo'):
+                msg = _('specified hashing algorithm ({}) is different form '
+                        'the one used in the digest file ({})')
+                raise ValueError(msg.format(self.algo, mobj.group('algo')))
+            algo = mobj.group('algo')
+            path = mobj.group('path')
+            hexdigest = mobj.group('digest')
+            binary = True
+        else:
+            mobj = DIGEST_LINE_RE.match(line)
+            if not mobj:
+                raise ValueError(
+                    _('unble to decode digest line: "{}"').format(line))
+            path = mobj.group('path')
+            hexdigest = mobj.group('digest')
+            binary = True if mobj.group('binary') else False
+            if self.algo is None:
+                msg = _('no algorithm specified; using MD5')
+                warnings.warn(msg)
+                algo = 'MD5'
+            else:
+                algo = self.algo
 
-    path, hexdigest, binary, algo = decode_checksum_file_line(line, algo)
+        return path, hexdigest, binary, algo
 
-    with io.open(path, 'rb') as fd:
-        hash_obj = compute_file_checksum(fd, algo, binary, multi_thread)
+    def process_checksum_file_line(self, line):
+        if len(line) == 0 or line[0] == '#':
+            # support for comments in the digest-file
+            return CheckResult.ignored
 
-    if hash_obj.hexdigest() == hexdigest:
-        result = CheckResult.ok
-    elif len(hash_obj.hexdigest()) != len(hexdigest):
-        result = CheckResult.improperly_formatted
-    else:
-        result = CheckResult.failure
+        path, hexdigest, binary, algo = self.decode_checksum_file_line(line)
 
-    if not status and result in (CheckResult.ok, CheckResult.failure):
-        if (result == CheckResult.failure) or not quiet:
-            print('{}: {}'.format(path, result.name.upper()))
+        with io.open(path, 'rb') as fd:
+            hash_obj = self._compute_file_checksum(fd, algo, binary)
 
-    return result
+        if hash_obj.hexdigest() == hexdigest:
+            result = CheckResult.ok
+        elif len(hash_obj.hexdigest()) != len(hexdigest):
+            result = CheckResult.improperly_formatted
+        else:
+            result = CheckResult.failure
 
+        if not self.status and result in (CheckResult.ok, CheckResult.failure):
+            if (result == CheckResult.failure) or not self.quiet:
+                print('{}: {}'.format(path, result.name.upper()))
 
-def print_check_results(check_result, filename, status=False, warn=False,
-                        strict=False):
-    ret = True
-    log = logging.getLogger('hashsum')
-    if check_result.n_failures > 0:
-        if not status:
-            msg = _('{} computed checksum did NOT match')
-            log.warning(msg.format(check_result.n_failures))
-        ret = False
+        return result
 
-    if check_result.n_improperly_formatted > 0:
-        if warn:
-            msg = _('{} improperly formatted checksum line')
-            log.warning(msg.format(check_result.n_improperly_formatted))
-        if strict:
+    def print_check_results(self, check_result, filename):
+        ret = True
+        log = logging.getLogger('hashsum')
+        if check_result.n_failures > 0:
+            if not self.status:
+                msg = _('{} computed checksum did NOT match')
+                log.warning(msg.format(check_result.n_failures))
             ret = False
 
-    if check_result.n_ok == 0:
-        msg = _('{}: no properly formatted checksum lines found')
-        log.info(msg.format(filename))
-        ret = False
+        if check_result.n_improperly_formatted > 0:
+            if self.warn:
+                msg = _('{} improperly formatted checksum line')
+                log.warning(msg.format(check_result.n_improperly_formatted))
+            if self.strict:
+                ret = False
 
-    return ret
+        if check_result.n_ok == 0:
+            msg = _('{}: no properly formatted checksum lines found')
+            log.info(msg.format(filename))
+            ret = False
 
+        return ret
 
-def verify_checksums(filenames, algo=None, quiet=False, status=False,
-                     warn=False, strict=False, multi_thread=False):
-    result = True
-    if filenames:
-        for filename in filenames:
+    def verify_checksums(self, filenames):
+        result = True
+        if filenames:
+            if isinstance(filenames, str):
+                filenames = [filenames]
+
+            for filename in filenames:
+                check_result = CheckResultData()
+                with open(filename) as fd:
+                    for line in fd:
+                        ret = self.process_checksum_file_line(line)
+                        check_result.update(ret)
+
+                ret = self.print_check_results(check_result, filename)
+                if not ret:
+                    result = False
+
+        else:
+            # filenames is None or an empty list
+            filename = '-'
             check_result = CheckResultData()
-            with open(filename) as fd:
-                for line in fd:
-                    ret = process_checksum_file_line(line, algo, quiet, status,
-                                                     multi_thread)
-                    check_result.update(ret)
+            for line in sys.stdin:
+                ret = self.process_checksum_file_line(line)
+                check_result.update(ret)
 
-            ret = print_check_results(check_result, filename, status, warn,
-                                      strict)
+            ret = self.print_check_results(check_result, filename)
             if not ret:
                 result = False
 
-    else:
-        filename = '-'
-        check_result = CheckResultData()
-        for line in sys.stdin:
-            ret = process_checksum_file_line(line, algo, quiet, status,
-                                             multi_thread)
-            check_result.update(ret)
-
-        ret = print_check_results(check_result, filename, status, warn, strict)
-        if not ret:
-            result = False
-
-    return result
+        return result
 
 
-def print_hash_line(filename, hash_obj, tag=False, binary=False):
-    algo = hash_obj.name
-    if algo.upper() in hashlib.algorithms_available:
-        algo = algo.upper()
+class ChecksumCalculator(object):
+    def __init__(self, algo=None, binary=None, tag=False, multi_thread=False):
+        self.algo = algo
+        self.binary = binary
+        self.tag = tag
+        self.multi_thread = multi_thread
 
-    if tag:
-        print('{} ({}) = {}'.format(algo, filename, hash_obj.hexdigest()))
-    else:
-        marker = '*' if binary else ' '
-        print('{} {}{}'.format(hash_obj.hexdigest(), marker, filename))
+        if self.algo is None:
+            msg = _('no algorithm specified; using MD5')
+            warnings.warn(msg)
+            self.algo = 'MD5'
 
+        if self.tag and not self.binary:
+            msg = _('binary option set to False is incompatible with tag '
+                    'option set to Ture')
+            raise ValueError(msg)
 
-def compute_checksums(filenames, algo=None, binary=None, tag=False,
-                      multi_thread=False):
-    if algo is None:
-        msg = _('no algorithm specified; using MD5')
-        warnings.warn(msg)
-        algo = 'MD5'
+    def print_hash_line(self, filename, hash_obj):
+        algo = hash_obj.name
+        if algo.upper() in hashlib.algorithms_available:
+            algo = algo.upper()
 
-    if tag and not binary:
-        raise ValueError(_('binary option set to False is incompatible with '
-                           'tag option set to Ture'))
-
-    if filenames:
-        for filename in filenames:
-            if os.path.isdir(filename):
-                log = logging.getLogger('hashsum')
-                msg = _('{}: is a directory')
-                log.info(msg.format(filename))
-                continue
-
-            with io.open(filename, 'rb') as fd:
-                hash_obj = compute_file_checksum(fd, algo, binary, multi_thread)
-
-            print_hash_line(filename, hash_obj, tag, binary)
-    else:
-        filename = '-'
-
-        if sys.version_info[0] < 3:
-            stdin = sys.stdin
-            if os.linesep != '\n' and binary:
-                try:
-                    import msvcrt
-                    msvcrt.setmode(stdin, os.O_BINARY)
-                except (ImportError, AttributeError):
-                    msg = _('binary mode is not supported for stdin on this '
-                            'platform')
-                    raise ValueError(msg)
+        if self.tag:
+            print('{} ({}) = {}'.format(algo, filename, hash_obj.hexdigest()))
         else:
-            stdin = sys.stdin.buffer
+            marker = '*' if self.binary else ' '
+            print('{} {}{}'.format(hash_obj.hexdigest(), marker, filename))
 
-        hash_obj = compute_file_checksum(stdin, algo, binary, multi_thread)
-        print_hash_line(filename, hash_obj, tag, binary)
+    def _compute_file_checksum(self, fd):
+        if self.multi_thread:
+            return _compute_file_checksum_threading(fd, self.algo, self.binary)
+        else:
+            return _compute_file_checksum_sequential(fd, self.algo, self.binary)
+
+    def compute_checksums(self, filenames):
+        if filenames:
+            if isinstance(filenames, str):
+                filenames = [filenames]
+
+            for filename in filenames:
+                if os.path.isdir(filename):
+                    log = logging.getLogger('hashsum')
+                    msg = _('{}: is a directory')
+                    log.info(msg.format(filename))
+                    continue
+
+                with io.open(filename, 'rb') as fd:
+                    hash_obj = self._compute_file_checksum(fd)
+
+                self.print_hash_line(filename, hash_obj)
+        else:
+            # filenames is None or an empty list
+            filename = '-'
+            old_mode = None
+
+            if sys.version_info[0] < 3:
+                stdin = sys.stdin
+                if os.linesep != '\n' and self.binary:
+                    try:
+                        import msvcrt
+                        msvcrt.setmode(stdin, os.O_BINARY)
+                    except (ImportError, AttributeError):
+                        msg = _('binary mode is not supported for stdin on this '
+                                'platform')
+                        raise ValueError(msg)
+                    else:
+                        old_mode = os.O_TEXT
+            else:
+                stdin = sys.stdin.buffer
+
+            try:
+                hash_obj = self._compute_file_checksum(stdin)
+                self.print_hash_line(filename, hash_obj)
+            finally:
+                if old_mode is not None:
+                    msvcrt.setmode(stdin, old_mode)
 
 
 def get_parser():
@@ -517,15 +538,15 @@ def main(argv=None):
             print(_('Available hash algoritms:'))
             print('  ', '\n  '.join(algolist), sep='')
         elif args.check:
-            result = verify_checksums(args.filenames, args.algorithm,
-                                      args.quiet, args.status, args.warn,
-                                      args.strict, args.multi_thread)
+            tool = ChecksumVerifier(args.algorithm, args.quiet, args.status,
+                                    args.warn, args.strict, args.multi_thread)
+            result = tool.verify_checksums(args.filenames)
             if not result:
-                return EX_FAILURE
+                exitcode = EX_FAILURE
         else:
-            compute_checksums(
-                args.filenames, args.algorithm, args.binary, args.tag,
-                args.multi_thread)
+            tool = ChecksumCalculator(
+                args.algorithm, args.binary, args.tag, args.multi_thread)
+            tool.compute_checksums(args.filenames)
     except Exception as e:
         exitcode = EX_FAILURE
         log = logging.getLogger('hashsum')
