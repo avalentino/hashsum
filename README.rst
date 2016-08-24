@@ -17,7 +17,7 @@ Usage
 ::
 
     usage: hashsum [-h] [-a] [--tag] [-b | -t] [-c | -l] [--quiet]
-                   [--status] [--strict] [-w] [--version]
+                   [--status] [--strict] [-w] [-m] [--version]
                    [FILE [FILE ...]]
 
     Compute and check message digest with different hash algorithms.
@@ -27,7 +27,7 @@ Usage
     indicating input mode ('*' for binary, space for text), and name
     for each FILE.
 
-    [1]  https://docs.python.org/3/library/hashlib.html
+    [1] https://docs.python.org/3/library/hashlib.html
 
     positional arguments:
       FILE                  name of file to process. If not specified,
@@ -44,6 +44,9 @@ Usage
       -c, --check           read checksum(s) form FILE and check them
       -l, --list-algorithms
                             list available hashing algorithms
+      -m, --multi-thread    perform I/O and hash computation in separate threads
+                            (default=False). Can speed-up computation on large
+                            files while it is not recommended for small files.
       --version             show program's version number and exit
 
     check:
