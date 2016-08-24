@@ -16,7 +16,7 @@ import warnings
 import functools
 
 
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 
 EX_OK = os.EX_OK
 EX_FAILURE = 1

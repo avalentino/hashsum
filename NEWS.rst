@@ -1,8 +1,14 @@
 hashsum changelog
 =================
 
-hashsum v1.2.0 (in development)
--------------------------------
+hashsum v1.2.1 (24/08/2016)
+---------------------------
+
+* Minor packaging fixes
+
+
+hashsum v1.2.0 (24/08/2016)
+---------------------------
 
 * Improved compatibility with the OpenSSL command line tool
 * Better iteration on data blocks
