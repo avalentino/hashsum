@@ -15,7 +15,7 @@ DATASIZE = 1024**3      # 1GB
 CHUNKSIZE = 1024**2     # 1MB
 BASEBLOCKSIZE = 8192
 NRUNS = 3
-ALGO = 'SHA512'     # 'MD5'
+ALGO = 'MD5'        #'SHA512'
 RESULTFILE = 'benchmarks.dat'
 RESULTPLOT = 'benchmarks.svg'
 

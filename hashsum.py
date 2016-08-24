@@ -21,7 +21,7 @@ gettext.textdomain('hashsum')
 _ = gettext.gettext
 
 
-VERSION = '1.1.2.dev0'
+VERSION = '1.2.0.dev0'
 
 EX_OK = os.EX_OK
 EX_FAILURE = 1
@@ -268,12 +268,15 @@ def _compute_file_checksum_multiprocessing(fd, algo='MD5', binary=True):
     return hash_obj
 
 
-# compute_file_checksum = _compute_file_checksum_multiprocessing
-# compute_file_checksum = _compute_file_checksum_threading
-compute_file_checksum = _compute_file_checksum_sequential
+def compute_file_checksum(fd, algo='MD5', binary=True, multi_thread=False):
+    if multi_thread:
+        return _compute_file_checksum_threading(fd, algo, binary)
+    else:
+        return _compute_file_checksum_sequential(fd, algo, binary)
 
 
-def process_checksum_file_line(line, algo=None, quiet=False, status=False):
+def process_checksum_file_line(line, algo=None, quiet=False, status=False,
+                               multi_thread=False):
     if len(line) == 0 or line[0] == '#':
         # support for comments in the digest-file
         return CheckResult.ignored
@@ -281,7 +284,7 @@ def process_checksum_file_line(line, algo=None, quiet=False, status=False):
     path, hexdigest, binary, algo = decode_checksum_file_line(line, algo)
 
     with io.open(path, 'rb') as fd:
-        hash_obj = compute_file_checksum(fd, algo, binary)
+        hash_obj = compute_file_checksum(fd, algo, binary, multi_thread)
 
     if hash_obj.hexdigest() == hexdigest:
         result = CheckResult.ok
@@ -323,14 +326,15 @@ def print_check_results(check_result, filename, status=False, warn=False,
 
 
 def verify_checksums(filenames, algo=None, quiet=False, status=False,
-                     warn=False, strict=False):
+                     warn=False, strict=False, multi_thread=False):
     result = True
     if filenames:
         for filename in filenames:
             check_result = CheckResultData()
             with open(filename) as fd:
                 for line in fd:
-                    ret = process_checksum_file_line(line, algo, quiet, status)
+                    ret = process_checksum_file_line(line, algo, quiet, status,
+                                                     multi_thread)
                     check_result.update(ret)
 
             ret = print_check_results(check_result, filename, status, warn,
@@ -342,7 +346,8 @@ def verify_checksums(filenames, algo=None, quiet=False, status=False,
         filename = '-'
         check_result = CheckResultData()
         for line in sys.stdin:
-            ret = process_checksum_file_line(line, algo, quiet, status)
+            ret = process_checksum_file_line(line, algo, quiet, status,
+                                             multi_thread)
             check_result.update(ret)
 
         ret = print_check_results(check_result, filename, status, warn, strict)
@@ -364,7 +369,8 @@ def print_hash_line(filename, hash_obj, tag=False, binary=False):
         print('{} {}{}'.format(hash_obj.hexdigest(), marker, filename))
 
 
-def compute_checksums(filenames, algo=None, binary=None, tag=False):
+def compute_checksums(filenames, algo=None, binary=None, tag=False,
+                      multi_thread=False):
     if algo is None:
         msg = _('no algorithm specified; using MD5')
         warnings.warn(msg)
@@ -383,7 +389,7 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
                 continue
 
             with io.open(filename, 'rb') as fd:
-                hash_obj = compute_file_checksum(fd, algo, binary)
+                hash_obj = compute_file_checksum(fd, algo, binary, multi_thread)
 
             print_hash_line(filename, hash_obj, tag, binary)
     else:
@@ -402,7 +408,7 @@ def compute_checksums(filenames, algo=None, binary=None, tag=False):
         else:
             stdin = sys.stdin.buffer
 
-        hash_obj = compute_file_checksum(stdin, algo, binary)
+        hash_obj = compute_file_checksum(stdin, algo, binary, multi_thread)
         print_hash_line(filename, hash_obj, tag, binary)
 
 
@@ -461,6 +467,13 @@ input mode ('*' for binary, space for text), and name for each FILE.
     check_group.add_argument(
         '-w', '--warn', action='store_true', default=False,
         help=_("warn about improperly formatted checksum lines"))
+
+    parser.add_argument(
+        '-m', '--multi-thread', action='store_true', default=False,
+        help='perform I/O and hash computation in separate threads '
+             '(default=%(default)s). '
+             'Can speed-up computation on large files while it is not '
+             'recommended for small files.')
 
     parser.add_argument(
         '--version', action='version', version='%(prog)s v{}'.format(VERSION))
@@ -539,17 +552,18 @@ def main(argv=None):
         elif args.check:
             result = verify_checksums(args.filenames, args.algorithm,
                                       args.quiet, args.status, args.warn,
-                                      args.strict)
+                                      args.strict, args.multi_thread)
             if not result:
                 return EX_FAILURE
         else:
             compute_checksums(
-                args.filenames, args.algorithm, args.binary, args.tag)
+                args.filenames, args.algorithm, args.binary, args.tag,
+                args.multi_thread)
     except Exception as e:
         exitcode = EX_FAILURE
         log = logging.getLogger('hashsum')
         log.error(str(e))
-        log.exception(str(e))
+        # log.exception(str(e))
 
     return exitcode
 

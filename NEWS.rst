@@ -1,7 +1,7 @@
 hashsum changelog
 =================
 
-hashsum v1.1.2 (in development)
+hashsum v1.2.0 (in development)
 -------------------------------
 
 * Improved compatibility with the OpenSSL command line tool
