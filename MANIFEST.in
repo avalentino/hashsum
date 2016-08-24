@@ -1,4 +1,3 @@
 include LICENSE.txt NEWS.rst
 recursive-include man *
-recursive-include po *
 recursive-include tests *.py *.dat *.txt

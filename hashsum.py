@@ -9,16 +9,11 @@ import re
 import sys
 import enum
 import codecs
-import gettext
 import hashlib
 import logging
 import argparse
 import warnings
 import functools
-
-
-gettext.textdomain('hashsum')
-_ = gettext.gettext
 
 
 VERSION = '1.2.0.dev0'
@@ -113,7 +108,7 @@ class CheckResultData(object):
         elif ret == CheckResult.ignored:
             self.n_ignored += 1
         else:
-            raise ValueError(_('unexpected value: {}').format(ret))
+            raise ValueError('unexpected value: {}'.format(ret))
 
 
 def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
@@ -220,8 +215,8 @@ class ChecksumVerifier(object):
         mobj = DIGEST_LINE_BSD_RE.match(line)
         if mobj:
             if self.algo is not None and self.algo != mobj.group('algo'):
-                msg = _('specified hashing algorithm ({}) is different form '
-                        'the one used in the digest file ({})')
+                msg = ('specified hashing algorithm ({}) is different form '
+                       'the one used in the digest file ({})')
                 raise ValueError(msg.format(self.algo, mobj.group('algo')))
             algo = mobj.group('algo')
             path = mobj.group('path')
@@ -231,13 +226,12 @@ class ChecksumVerifier(object):
             mobj = DIGEST_LINE_RE.match(line)
             if not mobj:
                 raise ValueError(
-                    _('unble to decode digest line: "{}"').format(line))
+                    'unble to decode digest line: "{}"'.format(line))
             path = mobj.group('path')
             hexdigest = mobj.group('digest')
             binary = True if mobj.group('binary') else False
             if self.algo is None:
-                msg = _('no algorithm specified; using MD5')
-                warnings.warn(msg)
+                warnings.warn('no algorithm specified; using MD5')
                 algo = 'MD5'
             else:
                 algo = self.algo
@@ -272,19 +266,19 @@ class ChecksumVerifier(object):
         log = logging.getLogger('hashsum')
         if check_result.n_failures > 0:
             if not self.status:
-                msg = _('{} computed checksum did NOT match')
+                msg = '{} computed checksum did NOT match'
                 log.warning(msg.format(check_result.n_failures))
             ret = False
 
         if check_result.n_improperly_formatted > 0:
             if self.warn:
-                msg = _('{} improperly formatted checksum line')
+                msg = '{} improperly formatted checksum line'
                 log.warning(msg.format(check_result.n_improperly_formatted))
             if self.strict:
                 ret = False
 
         if check_result.n_ok == 0:
-            msg = _('{}: no properly formatted checksum lines found')
+            msg = '{}: no properly formatted checksum lines found'
             log.info(msg.format(filename))
             ret = False
 
@@ -330,14 +324,13 @@ class ChecksumCalculator(object):
         self.multi_thread = multi_thread
 
         if self.algo is None:
-            msg = _('no algorithm specified; using MD5')
-            warnings.warn(msg)
+            warnings.warn('no algorithm specified; using MD5')
             self.algo = 'MD5'
 
         if self.tag and not self.binary:
-            msg = _('binary option set to False is incompatible with tag '
-                    'option set to Ture')
-            raise ValueError(msg)
+            raise ValueError(
+                'binary option set to False is incompatible with tag '
+                'option set to Ture')
 
     def print_hash_line(self, filename, hash_obj):
         algo = hash_obj.name
@@ -365,8 +358,7 @@ class ChecksumCalculator(object):
             for filename in filenames:
                 if os.path.isdir(filename):
                     log = logging.getLogger('hashsum')
-                    msg = _('{}: is a directory')
-                    log.info(msg.format(filename))
+                    log.info('{}: is a directory'.format(filename))
                     continue
 
                 with io.open(filename, 'rb') as fd:
@@ -385,8 +377,8 @@ class ChecksumCalculator(object):
                         import msvcrt
                         msvcrt.setmode(stdin, os.O_BINARY)
                     except (ImportError, AttributeError):
-                        msg = _('binary mode is not supported for stdin on '
-                                'this platform')
+                        msg = ('binary mode is not supported for stdin on '
+                               'this platform')
                         raise ValueError(msg)
                     else:
                         old_mode = os.O_TEXT
@@ -402,17 +394,17 @@ class ChecksumCalculator(object):
 
 
 def get_parser():
-    description = _(
-        '''Compute and check message digest with different hash algorithms.
+    description = '''\
+Compute and check message digest with different hash algorithms.
 
 The sums are computed as described in
 https://docs.python.org/3/library/hashlib.html.
 When checking, the input should be a former output of this program.
 The default mode is to print a line with checksum, a character indicating
 input mode ('*' for binary, space for text), and name for each FILE.
-''')
+'''
 
-    epilog = _('''Copyright (C) 2016, Antonio Valentino''')
+    epilog = 'Copyright (C) 2016, Antonio Valentino'
 
     parser = argparse.ArgumentParser(
             prog='hashsum', description=description, epilog=epilog)
@@ -420,42 +412,41 @@ input mode ('*' for binary, space for text), and name for each FILE.
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
         default=None, metavar='',
-        help=_('specify the hashing algorithm (default: MD5)'))
+        help='specify the hashing algorithm (default: MD5)')
     parser.add_argument(
         '--tag', action='store_true', default=False,
-        help=_('create a BSD-style checksum'))
+        help='create a BSD-style checksum')
 
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
         '-b', '--binary', action='store_true', default=None,
-        help=_('read input data in binary mode'))
+        help='read input data in binary mode')
     mode_group.add_argument(
         '-t', '--text', dest='binary', action='store_false',
-        help=_('read input data in text mode (default)'))
+        help='read input data in text mode (default)')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '-c', '--check', action='store_true', default=False,
-        help=_('read checksum(s) form FILE and check them'))
+        help='read checksum(s) form FILE and check them')
     group.add_argument(
         '-l', '--list-algorithms', action='store_true', default=False,
-        help=_('list available hashing algorithms'))
+        help='list available hashing algorithms')
 
     check_group = parser.add_argument_group(
-        'check',
-        _('Options that are useful only when verifying checksums'))
+        'check', 'Options that are useful only when verifying checksums')
     check_group.add_argument(
         '--quiet', action='store_true', default=False,
-        help=_("don't print OK for each successfully verified file"))
+        help="don't print OK for each successfully verified file")
     check_group.add_argument(
         '--status', action='store_true', default=False,
-        help=_("don't output anything, status code shows success"))
+        help="don't output anything, status code shows success")
     check_group.add_argument(
         '--strict', action='store_true', default=False,
-        help=_("exit non-zero for improperly formatted checksum lines"))
+        help="exit non-zero for improperly formatted checksum lines")
     check_group.add_argument(
         '-w', '--warn', action='store_true', default=False,
-        help=_("warn about improperly formatted checksum lines"))
+        help="warn about improperly formatted checksum lines")
 
     parser.add_argument(
         '-m', '--multi-thread', action='store_true', default=False,
@@ -468,9 +459,9 @@ input mode ('*' for binary, space for text), and name for each FILE.
         '--version', action='version', version='%(prog)s v{}'.format(VERSION))
     parser.add_argument(
         'filenames', nargs='*', metavar='FILE',
-        help=_('name of file to process. '
-               'If not specified, or set to -, data are read form the '
-               'standard input'))
+        help='name of file to process. '
+             'If not specified, or set to -, data are read form the '
+             'standard input')
 
     return parser
 
@@ -480,38 +471,38 @@ def parse_arguments(parser, argv=None):
 
     if args.tag:
         if args.binary is False:
-            parser.error(_('--tag does not support --text mode'))
+            parser.error('--tag does not support --text mode')
         else:
             args.binary = True
 
     if args.tag and args.check:
         parser.error(
-            _('the --tag option is meaningless when verifying checksums'))
+            'the --tag option is meaningless when verifying checksums')
 
     if args.binary and args.check:
-        parser.error(_('the --binary and --text options are meaningless '
-                       'when verifying checksums'))
+        parser.error('the --binary and --text options are meaningless '
+                     'when verifying checksums')
 
     if args.status and not args.check:
-        parser.error(_('the --status option is meaningful only when '
-                       'verifying checksums'))
+        parser.error('the --status option is meaningful only when '
+                     'verifying checksums')
 
     if args.warn and not args.check:
-        parser.error(_('the --warn option is meaningful only when '
-                       'verifying checksums'))
+        parser.error('the --warn option is meaningful only when '
+                     'verifying checksums')
 
     if args.quiet and not args.check:
-        parser.error(_('the --quiet option is meaningful only when '
-                       'verifying checksums'))
+        parser.error('the --quiet option is meaningful only when '
+                     'verifying checksums')
 
     if args.strict and not args.check:
-        parser.error(_('the --strict option is meaningful only when '
-                       'verifying checksums'))
+        parser.error('the --strict option is meaningful only when '
+                     'verifying checksums')
 
     if '-' in args.filenames:
         if len(args.filenames) > 1:
-            parser.error(_('"-" cannot be used if other file names have '
-                           'been specified'))
+            parser.error('"-" cannot be used if other file names have '
+                         'been specified')
         else:
             args.filenames.remove('-')
 
@@ -536,7 +527,7 @@ def main(argv=None):
                 algo for algo in algoset
                 if algo.isupper() or algo.upper() not in algoset
             )
-            print(_('Available hash algoritms:'))
+            print('Available hash algoritms:')
             print('  ', '\n  '.join(algolist), sep='')
         elif args.check:
             tool = ChecksumVerifier(args.algorithm, args.quiet, args.status,

@@ -8,6 +8,7 @@ hashsum v1.2.0 (in development)
 * Better iteration on data blocks
 * Optional threaded hash computation
 * Refactoring: the entire code has been re-organized in tools
+* Drop all `gettext` related files
 
 
 hashsum v1.1.1 (30/01/2016)
