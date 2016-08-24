@@ -2,7 +2,9 @@
 
 import os
 import sys
+import warnings
 import contextlib
+
 
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -107,3 +109,21 @@ except ImportError:
 
         def __exit__(self, exctype, excinst, exctb):
             setattr(sys, self._stream, self._old_targets.pop())
+
+
+if sys.version_info < (3, 4):
+
+    class catch_warnings(warnings.catch_warnings):
+        def __enter__(self):
+            try:
+                module = sys.modules['hashsum']
+                registry = getattr(module, '__warningregistry__')
+            except (AttributeError, KeyError):
+                pass
+            else:
+                registry.clear()
+
+            return super(catch_warnings, self).__enter__()
+
+else:
+    catch_warnings = warnings.catch_warnings

@@ -8,12 +8,14 @@ import sys
 import logging
 import unittest
 import warnings
-from ._test_utils import TESTDIRPATH, fixpath, runin, TrapOutput
+from ._test_utils import TESTDIRPATH, fixpath, runin, TrapOutput, catch_warnings
+
 
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
     from io import BytesIO as StringIO
+
 
 fixpath()
 
@@ -62,7 +64,7 @@ class ComputeSumTestCase(unittest.TestCase):
             'file01.dat', 'file02.dat', 'file03.dat',
         ]
 
-        with warnings.catch_warnings():
+        with catch_warnings():
             # Cause all warnings to always be triggered.
             warnings.simplefilter("always")
 
