@@ -202,10 +202,6 @@ def _worker(tasks, results, algo='MD5', decoder=None):
     finally:
         results.put(_FakeHashObject(hash_obj))
 
-    if hasattr(results, 'join_thread'):
-        results.close()
-        results.join_thread()
-
 
 def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
     try:
@@ -231,35 +227,6 @@ def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
             task_queue.put(data)
     finally:
         task_queue.put(None)
-
-    task_queue.join()
-    hash_obj = result_queue.get()
-    worker.join()
-
-    return hash_obj
-
-
-def _compute_file_checksum_multiprocessing(fd, algo='MD5', binary=True):
-    import multiprocessing as mp
-
-    if not binary and os.linesep != '\n':
-        decoder = IncrementalNewlineDecoder()
-    else:
-        decoder = None
-
-    task_queue = mp.JoinableQueue(_QUEUE_LEN)
-    result_queue = mp.Queue()
-
-    args = (task_queue, result_queue, algo, decoder)
-    worker = mp.Process(name='worker', target=_worker, args=args)
-    worker.start()
-
-    try:
-        for data in blockiter(fd, BLOCKSIZE):
-            task_queue.put(data)
-    finally:
-        task_queue.put(None)
-        task_queue.close()
 
     task_queue.join()
     hash_obj = result_queue.get()

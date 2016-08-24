@@ -48,32 +48,23 @@ def plot_data(testdata):
     plt.figure(figsize=(14, 6))
 
     plt.subplot(1, 2, 1)
+
+    label = 'sequential'
+    data = testdata['_compute_file_checksum_sequential']
+    x_seq = np.asarray(sorted(data.keys()), dtype='float')
+    y_seq = np.asarray([data[key] for key in x_seq])
+    x_seq *= BASEBLOCKSIZE / 1024.
+    plt.plot(x_seq, y_seq, 'o-', label=label)
+
     plt.grid(True)
     plt.hold(True)
 
-    if '_compute_file_checksum_sequential' in testdata:
-        label = 'sequential'
-        data = testdata['_compute_file_checksum_sequential']
-        x_seq = np.asarray(sorted(data.keys()), dtype='float')
-        y_seq = np.asarray([data[key] for key in x_seq])
-        x_seq *= BASEBLOCKSIZE / 1024.
-        plt.plot(x_seq, y_seq, 'o-', label=label)
-
-    if '_compute_file_checksum_threading' in testdata:
-        label = 'threading'
-        data = testdata['_compute_file_checksum_threading']
-        x_thr = np.asarray(sorted(data.keys()), dtype='float')
-        y_thr = np.asarray([data[key] for key in x_thr])
-        x_thr *= BASEBLOCKSIZE / 1024
-        plt.plot(x_thr, y_thr, 'o-', label=label)
-
-    if '_compute_file_checksum_multiprocessing' in testdata:
-        label = 'multiprocessing'
-        data = testdata['_compute_file_checksum_multiprocessing']
-        x_mpr = np.asarray(sorted(data.keys()), dtype='float')
-        y_mpr = np.asarray([data[key] for key in x_mpr])
-        x_mpr *= BASEBLOCKSIZE / 1024
-        plt.plot(x_mpr, y_mpr, 'o-', label=label)
+    label = 'threading'
+    data = testdata['_compute_file_checksum_threading']
+    x_thr = np.asarray(sorted(data.keys()), dtype='float')
+    y_thr = np.asarray([data[key] for key in x_thr])
+    x_thr *= BASEBLOCKSIZE / 1024
+    plt.plot(x_thr, y_thr, 'o-', label=label)
 
     plt.xlabel('Size [KB]')
     plt.ylabel('Time [s]')
@@ -84,21 +75,15 @@ def plot_data(testdata):
     plt.grid(True)
     plt.hold(True)
 
-    xvlines = [x_seq[np.argmin(y_seq)]]
+    plt.plot(
+        x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up (thr)')
+    plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
+             label='Speed up (thr)\nvs max seq speed')
 
-    if '_compute_file_checksum_threading' in testdata:
-        plt.plot(
-            x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up (thr)')
-        plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
-                 label='Speed up (thr)\nvs max seq speed')
-        xvlines.append(x_thr[np.argmin(y_thr)])
-
-    if '_compute_file_checksum_multiprocessing' in testdata:
-        plt.plot(
-            x_seq, (y_seq / y_mpr - 1) * 100., 'o-', label='Speed up (mpr)')
-        plt.plot(x_seq, (np.min(y_seq) / y_mpr - 1) * 100., 'o-',
-                 label='Speed up (mpr)\nvs max seq speed')
-        xvlines.append(x_mpr[np.argmin(y_mpr)])
+    xvlines = [
+        x_seq[np.argmin(y_seq)],
+        x_thr[np.argmin(y_thr)],
+    ]
 
     plt.ylim([-5., plt.ylim()[-1]])
     plt.vlines(xvlines, *plt.ylim())
@@ -121,10 +106,9 @@ def main():
     print('DATAFILE:', DATAFILE)
     print('DATASIZE: {:.3f} MB'.format(DATASIZE / 1024**2))
 
-    print('Test sequential {} hash computetion'.format(ALGO))
+    print('Test {} hash computetion'.format(ALGO))
 
     functions = (
-        #'_compute_file_checksum_multiprocessing',
         '_compute_file_checksum_threading',
         '_compute_file_checksum_sequential',
     )
@@ -141,12 +125,15 @@ def main():
             print('blocksize: {:.1f} KB ({} * {})'.format(
                 blocksize/1024, BASEBLOCKSIZE, multiplier))
 
+            if 'sequential' in function:
+                expr = 'hashsum.main(["-a=%s", "%s"])' % (ALGO, DATAFILE)
+            else:
+                expr = 'hashsum.main(["-a=%s", "-m", "%s"])' % (ALGO, DATAFILE)
             t = timeit.timeit(
-                'hashsum.main(["-a=%s", "%s"])' % (ALGO, DATAFILE),
+                expr,
                 'import hashsum; '
                 'hashsum_QUEUE_LEN = 0; '
-                'hashsum.compute_file_checksum = hashsum.%s; '
-                'hashsum.BLOCKSIZE = %s' % (function, blocksize),
+                'hashsum.BLOCKSIZE = %s' % blocksize,
                 number=NRUNS) / NRUNS
 
             print('Mean execution time: %f sec' % t)
