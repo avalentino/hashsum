@@ -1,6 +1,12 @@
 hashsum changelog
 =================
 
+hashsum v1.2.2 (15/11/2016)
+---------------------------
+
+* Fix compatibility with the windows operating system
+
+
 hashsum v1.2.1 (24/08/2016)
 ---------------------------
 

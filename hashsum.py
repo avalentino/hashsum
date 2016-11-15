@@ -16,9 +16,9 @@ import warnings
 import functools
 
 
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 
-EX_OK = os.EX_OK
+EX_OK = 0
 EX_FAILURE = 1
 
 
@@ -63,7 +63,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         self.buffer = b''
         if len(self.from_) > 1:
             assert(len(self.from_) == 2)
-            lastchar = self.from_[-2]
+            lastchar = self.from_[-2:-2]
             if output.endswith(lastchar) and not final:
                 output = output[:-1]
                 self.buffer = lastchar
