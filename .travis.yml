@@ -19,6 +19,8 @@ install:
     - pip install codecov
 
 script:
+    - coverage help
+    - coverage --version
     - coverage -m tests
     #- coverage --branch -m tests
 
