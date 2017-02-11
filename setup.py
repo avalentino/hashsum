@@ -12,7 +12,7 @@ def get_version():
     with open(filename) as fd:
         data = fd.read()
     mobj = re.search(
-        '^VERSION\s*=\s*(?P<quote>[\'"])(?P<version>[^\'"]+)(?P=quote)',
+        '^__version__\s*=\s*(?P<quote>[\'"])(?P<version>[^\'"]+)(?P=quote)',
         data,
         re.MULTILINE)
     return mobj.group('version')

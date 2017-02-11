@@ -16,7 +16,7 @@ import warnings
 import functools
 
 
-VERSION = '1.2.2'
+__version__ = '1.2.3.dev0'
 
 EX_OK = 0
 EX_FAILURE = 1
@@ -370,6 +370,7 @@ class ChecksumCalculator(object):
             filename = '-'
             old_mode = None
 
+            # stdin = io.open(sys.stdin.fileno(), mode='rb', closefd=False)
             if sys.version_info[0] < 3:
                 stdin = sys.stdin
                 if os.linesep != '\n' and self.binary:
@@ -456,7 +457,8 @@ input mode ('*' for binary, space for text), and name for each FILE.
              'recommended for small files.')
 
     parser.add_argument(
-        '--version', action='version', version='%(prog)s v{}'.format(VERSION))
+        '--version', action='version',
+        version='%(prog)s v{}'.format(__version__))
     parser.add_argument(
         'filenames', nargs='*', metavar='FILE',
         help='name of file to process. '
