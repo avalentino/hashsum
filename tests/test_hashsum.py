@@ -76,7 +76,7 @@ class ComputeSumTestCase(unittest.TestCase):
                 exitcode = hashsum.main(argv)
 
             self.assertEqual(exitcode, hashsum.EX_OK)
-            self.assertTrue('WARNING' in out.stderr.getvalue())
+            self.assertTrue('warning' in out.stderr.getvalue().lower())
 
     def test_binary_03(self):
         argv = self.COMMON_OPTIONS + [
@@ -213,4 +213,7 @@ class ThreadedCheckTestCase(CheckTestCase):
 
 
 if __name__ == '__main__':
+    from . import print_versions
+
+    print_versions()
     unittest.main()
