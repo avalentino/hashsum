@@ -15,11 +15,11 @@ python:
   - "pypy3"
 
 install:
+    - pip install -U coverage
     - pip install codecov
 
 script:
-    - coverage -m tests
-    #- coverage --branch -m tests
+    - coverage --branch -m tests
 
 after_success:
     - codecov
