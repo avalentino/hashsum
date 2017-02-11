@@ -1,6 +1,13 @@
 hashsum changelog
 =================
 
+hashsum v1.2.3 (in development)
+-------------------------------
+
+* hashsum.VERSION renamed into hashsum.__version__
+* added test utility functions
+
+
 hashsum v1.2.2 (15/11/2016)
 ---------------------------
 
