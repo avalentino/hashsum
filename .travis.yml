@@ -16,6 +16,7 @@ python:
 
 install:
     - pip install -U coverage
+    - pip install enum-compat
     - pip install codecov
 
 script:
