@@ -18,7 +18,7 @@ install:
     - pip install codecov
 
 script:
-    - coverage --branches -m tests
+    - coverage --branch -m tests
 
 after_success:
     - codecov
