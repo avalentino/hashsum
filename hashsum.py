@@ -84,10 +84,10 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
 
 
 class CheckResult(enum.Enum):
-    ok = 0
-    failure = 1
-    improperly_formatted = 2
-    ignored = 3
+    OK = 0
+    FAILURE = 1
+    BAD_FORMATTING = 2
+    IGNORED = 3
 
 
 class CheckResultData(object):
@@ -99,13 +99,13 @@ class CheckResultData(object):
         self.n_ignored = n_ignored
 
     def update(self, ret):
-        if ret == CheckResult.ok:
+        if ret == CheckResult.OK:
             self.n_ok += 1
-        elif ret == CheckResult.failure:
+        elif ret == CheckResult.FAILURE:
             self.n_failures += 1
-        elif ret == CheckResult.improperly_formatted:
+        elif ret == CheckResult.BAD_FORMATTING:
             self.n_improperly_formatted += 1
-        elif ret == CheckResult.ignored:
+        elif ret == CheckResult.IGNORED:
             self.n_ignored += 1
         else:
             raise ValueError('unexpected value: {}'.format(ret))
@@ -241,7 +241,7 @@ class ChecksumVerifier(object):
     def process_checksum_file_line(self, line):
         if len(line) == 0 or line[0] == '#':
             # support for comments in the digest-file
-            return CheckResult.ignored
+            return CheckResult.IGNORED
 
         path, hexdigest, binary, algo = self.decode_checksum_file_line(line)
 
@@ -249,14 +249,14 @@ class ChecksumVerifier(object):
             hash_obj = self._compute_file_checksum(fd, algo, binary)
 
         if hash_obj.hexdigest() == hexdigest:
-            result = CheckResult.ok
+            result = CheckResult.OK
         elif len(hash_obj.hexdigest()) != len(hexdigest):
-            result = CheckResult.improperly_formatted
+            result = CheckResult.BAD_FORMATTING
         else:
-            result = CheckResult.failure
+            result = CheckResult.FAILURE
 
-        if not self.status and result in (CheckResult.ok, CheckResult.failure):
-            if (result == CheckResult.failure) or not self.quiet:
+        if not self.status and result in (CheckResult.OK, CheckResult.FAILURE):
+            if (result == CheckResult.FAILURE) or not self.quiet:
                 print('{}: {}'.format(path, result.name.upper()))
 
         return result
