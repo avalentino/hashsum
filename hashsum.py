@@ -238,13 +238,17 @@ class ChecksumVerifier(object):
         else:
             return _compute_file_checksum_sequential(fd, algo, binary)
 
+    def _check_algorithm_compatibility(self, algo):
+        if self.algo is not None and self.algo.lower() != algo.lower():
+            raise ValueError(
+                'specified hashing algorithm ({}) is different form '
+                'the one used in the digest file ({})'.format(
+                    self.algo, algo))
+
     def decode_checksum_file_line(self, line):
         mobj = DIGEST_LINE_BSD_RE.match(line)
         if mobj:
-            if self.algo is not None and self.algo != mobj.group('algo'):
-                msg = ('specified hashing algorithm ({}) is different form '
-                       'the one used in the digest file ({})')
-                raise ValueError(msg.format(self.algo, mobj.group('algo')))
+            self._check_algorithm_compatibility(mobj.group('algo'))
             algo = mobj.group('algo')
             path = mobj.group('path')
             hexdigest = mobj.group('digest')
@@ -362,11 +366,8 @@ class ChecksumCalculator(object):
                 'option set to Ture')
 
     def print_hash_line(self, filename, hash_obj):
-        algo = hash_obj.name
-        if algo.upper() in hashlib.algorithms_available:
-            algo = algo.upper()
-
         if self.tag:
+            algo = hash_obj.name.upper()
             print('{} ({}) = {}'.format(algo, filename, hash_obj.hexdigest()))
         else:
             marker = '*' if self.binary else ' '
@@ -558,7 +559,7 @@ def main(*argv):
             algoset = hashlib.algorithms_available
             algolist = sorted(
                 algo for algo in algoset
-                if algo.isupper() or algo.upper() not in algoset
+                if algo.islower() or algo.lower() not in algoset
             )
             print('Available hash algoritms:')
             print('  ', '\n  '.join(algolist), sep='')
