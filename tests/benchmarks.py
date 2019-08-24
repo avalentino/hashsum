@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 DATAFILE = 'hashsum_test_data.dat'
 DATASIZE = 1024**3      # 1GB
 CHUNKSIZE = 1024**2     # 1MB
-BASEBLOCKSIZE = 8192
+BASEBLOCKSIZE = 8192    # bytes (8KB)
 NRUNS = 3
-ALGO = 'MD5'        #'SHA512'
+ALGO = 'md5'            # 'sha512'
 RESULTFILE = 'benchmarks.dat'
 RESULTPLOT = 'benchmarks.svg'
 
@@ -41,6 +41,14 @@ def save_data(data, filename=RESULTFILE):
         pickle.dump(data, fd)
 
 
+def load_data(filename=RESULTFILE):
+    import pickle
+    with open(RESULTFILE, 'rb') as fd:
+        data = pickle.load(fd)
+
+    return data
+
+
 def plot_data(testdata):
     import numpy as np
     from matplotlib import pyplot as plt
@@ -53,41 +61,32 @@ def plot_data(testdata):
     data = testdata['_compute_file_checksum_sequential']
     x_seq = np.asarray(sorted(data.keys()), dtype='float')
     y_seq = np.asarray([data[key] for key in x_seq])
-    x_seq *= BASEBLOCKSIZE / 1024.
-    plt.plot(x_seq, y_seq, 'o-', label=label)
+    plt.semilogx(x_seq, y_seq, 'o-', label=label)
 
     plt.grid(True)
-    plt.hold(True)
 
     label = 'threading'
     data = testdata['_compute_file_checksum_threading']
     x_thr = np.asarray(sorted(data.keys()), dtype='float')
     y_thr = np.asarray([data[key] for key in x_thr])
-    x_thr *= BASEBLOCKSIZE / 1024
-    plt.plot(x_thr, y_thr, 'o-', label=label)
+    plt.semilogx(x_thr, y_thr, 'o-', label=label)
 
-    plt.xlabel('Size [KB]')
+    plt.xlabel('Block size')
     plt.ylabel('Time [s]')
     plt.title('Checksum computation benchmark')
     plt.legend(loc='best')
 
     plt.subplot(1, 2, 2)
     plt.grid(True)
-    plt.hold(True)
 
-    plt.plot(
+    plt.semilogx(
         x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up (thr)')
-    plt.plot(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
+    plt.semilogx(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
              label='Speed up (thr)\nvs max seq speed')
 
-    xvlines = [
-        x_seq[np.argmin(y_seq)],
-        x_thr[np.argmin(y_thr)],
-    ]
-
-    plt.ylim([-5., plt.ylim()[-1]])
-    plt.vlines(xvlines, *plt.ylim())
-    plt.xlabel('Size [KB]')
+    plt.axvline(x_seq[np.argmin(y_seq)], color='k')
+    plt.axvline(x_thr[np.argmin(y_thr)], color='k')
+    plt.xlabel('Block size')
     plt.ylabel('Speed up [%]')
     plt.title('Speed up')
     plt.legend(loc='best')
@@ -112,28 +111,30 @@ def main():
         '_compute_file_checksum_threading',
         '_compute_file_checksum_sequential',
     )
-    # multipliers = (1024, 768, 512, 384, 256, 192, 128, 64, 32, 16, 8, 4)
-    multipliers = (1024, 512, 256, 128, 64, 32, 16, 8, 4)
+    multipliers = (
+        8*1024, 4*1024, 2*1024, 1024,
+        512, 256, 128, 64, 32, 16, 8, 4, 2)
     data = collections.defaultdict(dict)
 
     for multiplier in multipliers:
         blocksize = BASEBLOCKSIZE * multiplier
 
         for function in functions:
+            if 'sequential' in function:
+                expr = 'hashsum.main("-a=%s", "%s")' % (ALGO, DATAFILE)
+            else:
+                expr = 'hashsum.main("-a=%s", "-m", "%s")' % (ALGO, DATAFILE)
 
             print('function:', function)
             print('blocksize: {:.1f} KB ({} * {})'.format(
                 blocksize/1024, BASEBLOCKSIZE, multiplier))
+            print('timeit:', expr)
 
-            if 'sequential' in function:
-                expr = 'hashsum.main(["-a=%s", "%s"])' % (ALGO, DATAFILE)
-            else:
-                expr = 'hashsum.main(["-a=%s", "-m", "%s"])' % (ALGO, DATAFILE)
             t = timeit.timeit(
                 expr,
-                'import hashsum; '
-                'hashsum_QUEUE_LEN = 0; '
-                'hashsum.BLOCKSIZE = %s' % blocksize,
+                'import hashsum\n'
+                'hashsum._QUEUE_LEN = 10\n'
+                'hashsum.BLOCKSIZE = %s\n' % blocksize,
                 number=NRUNS) / NRUNS
 
             print('Mean execution time: %f sec' % t)
@@ -146,4 +147,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if True:
+        main()
+    else:
+        plot_data(load_data(RESULTFILE))
+
