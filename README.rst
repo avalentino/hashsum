@@ -67,4 +67,4 @@ Package testing
 
 ::
 
-    $ python setyp.py test
+    $ python3 setyp.py test

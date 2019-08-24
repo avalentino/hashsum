@@ -6,6 +6,12 @@ hashsum v1.2.3 (in development)
 
 * hashsum.VERSION renamed into hashsum.__version__
 * added test utility functions
+* prefer lowercase names for hash functions
+* improve robustness against unknown/unavailable hash functions in
+  threaded checksum computation
+* new `--failfast` option added to the test CLI
+* improved benchmark script
+* man page updated
 
 
 hashsum v1.2.2 (15/11/2016)
