@@ -61,6 +61,7 @@ def plot_data(testdata):
     data = testdata['_compute_file_checksum_sequential']
     x_seq = np.asarray(sorted(data.keys()), dtype='float')
     y_seq = np.asarray([data[key] for key in x_seq])
+    x_seq *= BASEBLOCKSIZE
     plt.semilogx(x_seq, y_seq, 'o-', label=label)
 
     plt.grid(True)
@@ -69,6 +70,7 @@ def plot_data(testdata):
     data = testdata['_compute_file_checksum_threading']
     x_thr = np.asarray(sorted(data.keys()), dtype='float')
     y_thr = np.asarray([data[key] for key in x_thr])
+    x_thr *= BASEBLOCKSIZE
     plt.semilogx(x_thr, y_thr, 'o-', label=label)
 
     plt.xlabel('Block size')
