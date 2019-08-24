@@ -21,4 +21,4 @@ script:
   - coverage run --branch -m tests
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION = '3.7' ]]; codecov; fi
+  - if [[ $TRAVIS_PYTHON_VERSION = '3.7' ]]; then codecov; fi
