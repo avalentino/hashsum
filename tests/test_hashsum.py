@@ -193,6 +193,16 @@ class CheckTestCase(unittest.TestCase):
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
+    def test_binary_openssl_bad(self):
+        argv = self.COMMON_OPTIONS + [
+            '-c', os.path.join(DATAPATH, 'SHASUM_openssl_bad.txt'),
+        ]
+        with runin(DATAPATH), TrapOutput():
+            exitcode = hashsum.main(*argv)
+        self.assertEqual(exitcode, hashsum.EX_FAILURE)
+        self.assertIn(
+            'ERROR: unsupported hash type SHA', self.stderr.getvalue())
+
     def test_text(self):
         if sys.platform.startswith('win'):
             checksumfile = 'MD5SUM_text_win.txt'

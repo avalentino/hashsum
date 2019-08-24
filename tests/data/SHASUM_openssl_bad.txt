@@ -1,0 +1,3 @@
+SHA(file01.dat)= 408ea3748baa5a589161315bdb7534f24bcfecd4
+SHA(file02.dat)= df413cbb86c80cbf096caaac7b2c774b0015837f
+SHA(file03.dat)= 1ee036c4e2b492519b7bbfd4d96dc15da11c23f5
