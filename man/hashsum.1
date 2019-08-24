@@ -1,16 +1,17 @@
-.TH HASHSUM "1" "August 2016" "hashsum v1.2.0" "User Commands"
+.TH HASHSUM "1" "August 2019" "hashsum v1.2.3" "User Commands"
 .SH NAME
-hashsum \- compute and check message digest with different algorithms
+hashsum \- compute and check message digest with different hash algorithms
 .SH SYNOPSIS
 .B hashsum
-[\-h] [\-a] [\-\-tag] [\-b | \-t] [\-c | \-l] [\-\-quiet] [\-\-status]
+[\-h] [\-a] [\-\-tag] [\-b | \fB\-t]\fR [\-c | \fB\-l]\fR [\-\-quiet] [\-\-status]
 [\-\-strict] [\-w] [\-m] [\-\-version]
 [FILE [FILE ...]]
 .SH DESCRIPTION
-The sums are computed as described in [1].
-When checking, the input should be a former output of this program.
-The default mode is to print a line with checksum, a character indicating
-input mode ('*' for binary, space for text), and name for each FILE.
+Compute and check message digest with different hash algorithms. The sums are
+computed as described in [1]. When checking, the input should be a former
+output of this program. The default mode is to print a line with checksum, a
+character indicating input mode ('*' for binary, space for text), and name for
+each FILE.
 .PP
 [1] https://docs.python.org/3/library/hashlib.html
 .SH OPTIONS
@@ -24,8 +25,8 @@ name of file to process. If not specified, or set to
 \fB\-h\fR, \fB\-\-help\fR
 show this help message and exit
 .TP
-\fB\-a\fR, \fB\-\-algorithm\fR
-specify the hashing algorithm (default: MD5)
+\fB\-a\fR , \fB\-\-algorithm\fR
+specify the hashing algorithm (default: 'md5')
 .TP
 \fB\-\-tag\fR
 create a BSD\-style checksum
@@ -45,7 +46,7 @@ list available hashing algorithms
 \fB\-m\fR, \fB\-\-multi\-thread\fR
 perform I/O and hash computation in separate threads
 (default=False). Can speed\-up computation on large
-files while it is not recommended for small files
+files while it is not recommended for small files.
 .TP
 \fB\-\-version\fR
 show program's version number and exit
@@ -63,6 +64,6 @@ exit non\-zero for improperly formatted checksum lines
 \fB\-w\fR, \fB\-\-warn\fR
 warn about improperly formatted checksum lines
 .SH COPYRIGHT
-Copyright (C) 2016-2019, Antonio Valentino
+Copyright \(co 2016\-2019, Antonio Valentino
 .SH "SEE ALSO"
 md2sum, shasum, sha1sum, sha224sum, sha256sum, sha384sum, sha512sum
