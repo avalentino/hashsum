@@ -174,8 +174,9 @@ class HashObjectData(object):
 
 
 def _worker(tasks, results, algo=DEFAULT_ALGO, decoder=None):
-    hash_obj = hashlib.new(algo)
     try:
+        hash_obj = hashlib.new(algo)
+
         for data in iter(tasks.get, None):
             if decoder:
                 data = decoder.decode(data)
@@ -186,8 +187,10 @@ def _worker(tasks, results, algo=DEFAULT_ALGO, decoder=None):
                 data = decoder.decode(b'', final=True)
                 hash_obj.update(data)
             tasks.task_done()  # for None
-    finally:
-        results.put(HashObjectData(hash_obj))
+
+            results.put(HashObjectData(hash_obj))
+    except Exception as exc:
+        results.put(exc)
 
 
 def _compute_file_checksum_threading(fd, algo=DEFAULT_ALGO, binary=True):
@@ -212,14 +215,18 @@ def _compute_file_checksum_threading(fd, algo=DEFAULT_ALGO, binary=True):
     try:
         for data in blockiter(fd, BLOCKSIZE):
             task_queue.put(data)
+            if not result_queue.empty():
+                break  # fail fast
     finally:
         task_queue.put(None)
 
-    task_queue.join()
-    hash_obj = result_queue.get()
+    result = result_queue.get()
     worker.join()
 
-    return hash_obj
+    if isinstance(result, Exception):
+        raise result
+
+    return result
 
 
 class ChecksumVerifier(object):
