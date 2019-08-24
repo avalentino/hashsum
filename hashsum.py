@@ -405,7 +405,7 @@ The default mode is to print a line with checksum, a character indicating
 input mode ('*' for binary, space for text), and name for each FILE.
 '''
 
-    epilog = 'Copyright (C) 2016, Antonio Valentino'
+    epilog = 'Copyright (C) 2016-2019, Antonio Valentino'
 
     parser = argparse.ArgumentParser(
             prog='hashsum', description=description, epilog=epilog)
