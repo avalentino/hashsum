@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""Compute and check message digest with different hash algorithms.
+
+The sums are computed as described in [1].
+When checking, the input should be a former output of this program.
+The default mode is to print a line with checksum, a character indicating
+input mode ('*' for binary, space for text), and name for each FILE.
+
+[1] https://docs.python.org/3/library/hashlib.html
+"""
+
+
 from __future__ import print_function
 
 import io
@@ -15,11 +26,24 @@ import argparse
 import warnings
 import functools
 
+try:
+    from os import EX_OK
+except ImportError:
+    EX_OK = 0
+EX_FAILURE = 1
+EX_INTERRUPT = 130
+
+try:
+    import argcomplete
+except ImportError:
+    argcomplete = False
+else:
+    PYTHON_ARGCOMPLETE_OK = True
+
 
 __version__ = '1.2.3.dev1'
-
-EX_OK = 0
-EX_FAILURE = 1
+PROG = os.path.splitext(os.path.basename(__file__))[0]
+LOGFMT = '%(levelname)s: %(message)s'
 
 
 DIGEST_LINE_RE = re.compile(
@@ -395,20 +419,12 @@ class ChecksumCalculator(object):
 
 
 def get_parser():
-    description = '''\
-Compute and check message digest with different hash algorithms.
-
-The sums are computed as described in
-https://docs.python.org/3/library/hashlib.html.
-When checking, the input should be a former output of this program.
-The default mode is to print a line with checksum, a character indicating
-input mode ('*' for binary, space for text), and name for each FILE.
-'''
+    """Instantiate the command line argument parser."""
 
     epilog = 'Copyright (C) 2016-2019, Antonio Valentino'
 
     parser = argparse.ArgumentParser(
-            prog='hashsum', description=description, epilog=epilog)
+            prog=PROG, description=__doc__, epilog=epilog)
 
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
@@ -465,11 +481,19 @@ input mode ('*' for binary, space for text), and name for each FILE.
              'If not specified, or set to -, data are read form the '
              'standard input')
 
+    if argcomplete:
+        argcomplete.autocomplete(parser)
+
     return parser
 
 
-def parse_arguments(parser, argv=None):
-    args = parser.parse_args(argv)
+def parse_args(args=None, namespace=None, parser=None):
+    """Parse command line arguments."""
+
+    if parser is None:
+        parser = get_parser()
+
+    args = parser.parse_args(args)
 
     if args.tag:
         if args.binary is False:
@@ -511,17 +535,18 @@ def parse_arguments(parser, argv=None):
     return args
 
 
-def main(argv=None):
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(name)s: %(levelname)s: %(message)s')
+def main(*argv):
+    """Main CLI interface."""
 
+    # setup logging
+    logging.basicConfig(format=LOGFMT, level=logging.INFO)
     logging.captureWarnings(True)
+    log = logging.getLogger('hashsum')
 
-    parser = get_parser()
-    args = parse_arguments(parser, argv)
+    # parse cmd line arguments
+    args = parse_args(argv if argv else None)
+
     exitcode = EX_OK
-
     try:
         if args.list_algorithms:
             algoset = hashlib.algorithms_available
@@ -541,11 +566,13 @@ def main(argv=None):
             tool = ChecksumCalculator(
                 args.algorithm, args.binary, args.tag, args.multi_thread)
             tool.compute_checksums(args.filenames)
-    except Exception as e:
+    except Exception as exc:
+        log.error(str(exc))
+        log.debug('stacktrace:', exc_info=True)
         exitcode = EX_FAILURE
-        log = logging.getLogger('hashsum')
-        log.error(str(e))
-        # log.exception(str(e))
+    except KeyboardInterrupt:
+        log.warning('Keyboard interrupt received: exit the program')
+        exitcode = EX_INTERRUPT
 
     return exitcode
 

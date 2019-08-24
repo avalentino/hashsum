@@ -53,7 +53,7 @@ class ComputeSumTestCase(unittest.TestCase):
             'file01.dat', 'file02.dat', 'file03.dat',
         ]
         with runin(DATAPATH), TrapOutput() as out:
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
         data = out.stdout.getvalue()
 
@@ -73,7 +73,7 @@ class ComputeSumTestCase(unittest.TestCase):
             warnings.simplefilter("always")
 
             with runin(DATAPATH), TrapOutput(stderr=self.stderr) as out:
-                exitcode = hashsum.main(argv)
+                exitcode = hashsum.main(*argv)
 
             self.assertEqual(exitcode, hashsum.EX_OK)
             self.assertTrue('warning' in out.stderr.getvalue().lower())
@@ -84,7 +84,7 @@ class ComputeSumTestCase(unittest.TestCase):
             'file01.dat', 'file02.dat', 'file03.dat',
         ]
         with runin(DATAPATH), TrapOutput() as out:
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
         data = out.stdout.getvalue()
 
@@ -99,7 +99,7 @@ class ComputeSumTestCase(unittest.TestCase):
             'file01.dat', 'file02.dat', 'file03.dat',
         ]
         with runin(DATAPATH), TrapOutput() as out:
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
         data = out.stdout.getvalue()
 
@@ -114,7 +114,7 @@ class ComputeSumTestCase(unittest.TestCase):
             'file01.dat', 'file02.dat', 'file03.dat',
         ]
         with runin(DATAPATH), TrapOutput() as out:
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
         data = out.stdout.getvalue()
 
@@ -157,7 +157,7 @@ class CheckTestCase(unittest.TestCase):
             '-c', os.path.join(DATAPATH, 'MD5SUM_binary.txt'),
         ]
         with runin(DATAPATH), TrapOutput():
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
     def test_binary_bsd_01(self):
@@ -165,7 +165,7 @@ class CheckTestCase(unittest.TestCase):
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
         ]
         with runin(DATAPATH), TrapOutput():
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
     def test_binary_bsd_02(self):
@@ -174,7 +174,7 @@ class CheckTestCase(unittest.TestCase):
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
         ]
         with runin(DATAPATH), TrapOutput():
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
     def test_binary_bsd_03(self):
@@ -184,7 +184,7 @@ class CheckTestCase(unittest.TestCase):
         ]
 
         with runin(DATAPATH), TrapOutput(stderr=self.stderr) as out:
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_FAILURE)
         self.assertTrue('ERROR' in out.stderr.getvalue())
 
@@ -193,7 +193,7 @@ class CheckTestCase(unittest.TestCase):
             '-c', os.path.join(DATAPATH, 'SHASUM_openssl.txt'),
         ]
         with runin(DATAPATH), TrapOutput():
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
     def test_text(self):
@@ -204,7 +204,7 @@ class CheckTestCase(unittest.TestCase):
 
         argv = ['-c', os.path.join(DATAPATH, checksumfile)]
         with runin(DATAPATH), TrapOutput():
-            exitcode = hashsum.main(argv)
+            exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
 
