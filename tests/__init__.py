@@ -43,9 +43,9 @@ def suite():
     return alltests
 
 
-def test(verbosity=1):
+def test(verbosity=1, failfast=False):
     print_versions()
-    runner = unittest.TextTestRunner(verbosity=verbosity)
+    runner = unittest.TextTestRunner(verbosity=verbosity, failfast=failfast)
     result = runner.run(suite())
 
     return os.EX_OK if result.wasSuccessful() else 1
