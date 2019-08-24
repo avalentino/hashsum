@@ -93,7 +93,8 @@ try:
     from contextlib import redirect_stderr
 except ImportError:
     class redirect_stderr(object):
-        """Context manager for temporarily redirecting stderr to another file."""
+        """Context manager for temporarily redirecting stderr to another file.
+        """
 
         _stream = "stderr"
 
