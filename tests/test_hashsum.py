@@ -36,10 +36,7 @@ class ComputeSumTestCase(unittest.TestCase):
     COMMON_OPTIONS = []
 
     def setUp(self):
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(name)s: %(levelname)s: %(message)s')
-
+        logging.basicConfig(format=hashsum.LOGFMT, level=logging.INFO)
         logging.captureWarnings(True)
 
         self._old_stream = logging.getLogger().handlers[0].stream
@@ -141,10 +138,7 @@ class CheckTestCase(unittest.TestCase):
     COMMON_OPTIONS = []
 
     def setUp(self):
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(name)s: %(levelname)s: %(message)s')
-
+        logging.basicConfig(format=hashsum.LOGFMT, level=logging.INFO)
         logging.captureWarnings(True)
 
         self._old_stream = logging.getLogger().handlers[0].stream
