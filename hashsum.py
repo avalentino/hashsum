@@ -56,6 +56,9 @@ BLOCKSIZE = 1024 * 1024     # 1MB
 _QUEUE_LEN = 50             # max 50MB
 
 
+DEFAULT_ALGO = 'md5'
+
+
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
     '''Iterator on file-like objects that read blocks of the specified size
 
@@ -135,7 +138,7 @@ class CheckResultData(object):
             raise ValueError('unexpected value: {}'.format(ret))
 
 
-def _compute_file_checksum_sequential(fd, algo='MD5', binary=True):
+def _compute_file_checksum_sequential(fd, algo=DEFAULT_ALGO, binary=True):
     hash_obj = hashlib.new(algo)
 
     if not binary and os.linesep != '\n':
@@ -170,7 +173,7 @@ class HashObjectData(object):
         return self._hexdigest
 
 
-def _worker(tasks, results, algo='MD5', decoder=None):
+def _worker(tasks, results, algo=DEFAULT_ALGO, decoder=None):
     hash_obj = hashlib.new(algo)
     try:
         for data in iter(tasks.get, None):
@@ -187,7 +190,7 @@ def _worker(tasks, results, algo='MD5', decoder=None):
         results.put(HashObjectData(hash_obj))
 
 
-def _compute_file_checksum_threading(fd, algo='MD5', binary=True):
+def _compute_file_checksum_threading(fd, algo=DEFAULT_ALGO, binary=True):
     try:
         import queue
     except ImportError:
@@ -255,8 +258,9 @@ class ChecksumVerifier(object):
             hexdigest = mobj.group('digest')
             binary = True if mobj.group('binary') else False
             if self.algo is None:
-                warnings.warn('no algorithm specified; using MD5')
-                algo = 'MD5'
+                warnings.warn(
+                    'no algorithm specified; using {!r}'.format(DEFAULT_ALGO))
+                algo = DEFAULT_ALGO
             else:
                 algo = self.algo
 
@@ -348,8 +352,9 @@ class ChecksumCalculator(object):
         self.multi_thread = multi_thread
 
         if self.algo is None:
-            warnings.warn('no algorithm specified; using MD5')
-            self.algo = 'MD5'
+            warnings.warn(
+                'no algorithm specified; using {!r}'.format(DEFAULT_ALGO))
+            self.algo = DEFAULT_ALGO
 
         if self.tag and not self.binary:
             raise ValueError(
@@ -429,7 +434,8 @@ def get_parser():
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
         default=None, metavar='',
-        help='specify the hashing algorithm (default: MD5)')
+        help='specify the hashing algorithm '
+             '(default: {!r})'.format(DEFAULT_ALGO))
     parser.add_argument(
         '--tag', action='store_true', default=False,
         help='create a BSD-style checksum')

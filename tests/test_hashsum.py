@@ -27,9 +27,12 @@ import hashsum
 
 DATAPATH = os.path.join(TESTDIRPATH, 'data')
 
+MD5 = 'md5'
+SHA = 'sha1'
+
 
 class ComputeSumTestCase(unittest.TestCase):
-    ALGO = 'MD5'
+    ALGO = MD5
     COMMON_OPTIONS = []
 
     def setUp(self):
@@ -134,7 +137,7 @@ class ThreadedComputeSumTestCase(ComputeSumTestCase):
 
 
 class CheckTestCase(unittest.TestCase):
-    ALGO = 'MD5'
+    ALGO = MD5
     COMMON_OPTIONS = []
 
     def setUp(self):
@@ -179,7 +182,7 @@ class CheckTestCase(unittest.TestCase):
 
     def test_binary_bsd_03(self):
         argv = self.COMMON_OPTIONS + [
-            '-a', 'SHA' if 'SHA' != self.ALGO else 'MD5',
+            '-a', SHA if SHA != self.ALGO else MD5,
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
         ]
 
