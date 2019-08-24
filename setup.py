@@ -66,5 +66,5 @@ setup(
             'hashsum=hashsum:main',
         ],
     },
-    test_suite='tests',
+    test_suite='tests.suite',
 )
