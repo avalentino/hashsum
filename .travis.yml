@@ -3,24 +3,22 @@ sudo: false
 language: python
 
 python:
-  # - "2.6"
   - "2.7"
-  # - "3.2"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
-  - "nightly" # currently points to 3.6-dev
-  # - "pypy"
+  - "3.7"
+  - "3.8-dev"
+  - "pypy"
   - "pypy3"
 
 install:
-    - pip install -U coverage
-    - pip install enum-compat
-    - pip install codecov
+  - pip install -U coverage
+  - pip install enum-compat
+  - pip install codecov
 
 script:
-    - coverage run --branch -m tests
+  - coverage run --branch -m tests
 
 after_success:
-    - codecov
+  - if [[ $TRAVIS_PYTHON_VERSION = '3.7' ]]; codecov; fi
