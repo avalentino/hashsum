@@ -264,7 +264,7 @@ class ChecksumVerifier(object):
             mobj = DIGEST_LINE_RE.match(line)
             if not mobj:
                 raise ValueError(
-                    'unble to decode digest line: "{}"'.format(line))
+                    'unable to decode digest line: "{}"'.format(line))
             path = mobj.group('path')
             hexdigest = mobj.group('digest')
             binary = True if mobj.group('binary') else False
