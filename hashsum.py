@@ -305,20 +305,23 @@ class ChecksumVerifier(object):
         log = logging.getLogger('hashsum')
         if check_result.n_failures > 0:
             if not self.status:
-                msg = '{} computed checksum did NOT match'
-                log.warning(msg.format(check_result.n_failures))
+                log.warning(
+                    '{} computed checksum do NOT match'.format(
+                        check_result.n_failures))
             ret = False
 
         if check_result.n_improperly_formatted > 0:
             if self.warn:
-                msg = '{} improperly formatted checksum line'
-                log.warning(msg.format(check_result.n_improperly_formatted))
+                log.warning(
+                '{} improperly formatted checksum line'.format(
+                    check_result.n_improperly_formatted))
             if self.strict:
                 ret = False
 
         if check_result.n_ok == 0:
-            msg = '{}: no properly formatted checksum lines found'
-            log.info(msg.format(filename))
+            log.info(
+                '{}: no properly formatted checksum lines found'.format(
+                    filename))
             ret = False
 
         return ret
@@ -415,9 +418,9 @@ class ChecksumCalculator(object):
                         import msvcrt
                         msvcrt.setmode(stdin, os.O_BINARY)
                     except (ImportError, AttributeError):
-                        msg = ('binary mode is not supported for stdin on '
-                               'this platform')
-                        raise ValueError(msg)
+                        raise ValueError(
+                            'binary mode is not supported for stdin on '
+                            'this platform')
                     else:
                         old_mode = os.O_TEXT
             else:
