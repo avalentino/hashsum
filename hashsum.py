@@ -243,6 +243,7 @@ class ChecksumVerifier(object):
         self.warn = warn
         self.strict = strict
         self.multi_thread = multi_thread
+        self._log = logging.getLogger('hashsum')
 
     def _compute_file_checksum(self, fd, algo, binary):
         if self.multi_thread:
@@ -274,8 +275,9 @@ class ChecksumVerifier(object):
             hexdigest = mobj.group('digest')
             binary = True if mobj.group('binary') else False
             if self.algo is None:
-                warnings.warn(
-                    'no algorithm specified; using {!r}'.format(DEFAULT_ALGO))
+                msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
+                # warnings.warn(msg)
+                self._log.warning(msg)
                 algo = DEFAULT_ALGO
             else:
                 algo = self.algo
@@ -307,24 +309,23 @@ class ChecksumVerifier(object):
 
     def print_check_results(self, check_result, filename):
         ret = True
-        log = logging.getLogger('hashsum')
         if check_result.n_failures > 0:
             if not self.status:
-                log.warning(
+                self._log.warning(
                     '{} computed checksum do NOT match'.format(
                         check_result.n_failures))
             ret = False
 
         if check_result.n_improperly_formatted > 0:
             if self.warn:
-                log.warning(
+                self._log.warning(
                 '{} improperly formatted checksum line'.format(
                     check_result.n_improperly_formatted))
             if self.strict:
                 ret = False
 
         if check_result.n_ok == 0:
-            log.info(
+            self._log.info(
                 '{}: no properly formatted checksum lines found'.format(
                     filename))
             ret = False
@@ -369,10 +370,12 @@ class ChecksumCalculator(object):
         self.binary = binary
         self.tag = tag
         self.multi_thread = multi_thread
+        self._log = logging.getLogger('hashsum')
 
         if self.algo is None:
-            warnings.warn(
-                'no algorithm specified; using {!r}'.format(DEFAULT_ALGO))
+            msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
+            # warnings.warn(msg)
+            self._log.warning(msg)
             self.algo = DEFAULT_ALGO
 
         if self.tag and not self.binary:
@@ -402,8 +405,7 @@ class ChecksumCalculator(object):
 
             for filename in filenames:
                 if os.path.isdir(filename):
-                    log = logging.getLogger('hashsum')
-                    log.info('{}: is a directory'.format(filename))
+                    self._log.info('{}: is a directory'.format(filename))
                     continue
 
                 with io.open(filename, 'rb') as fd:
