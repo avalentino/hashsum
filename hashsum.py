@@ -137,6 +137,11 @@ class CheckResultData(object):
         else:
             raise ValueError('unexpected value: {}'.format(ret))
 
+    def __repr__(self):
+        keys = ['n_ok', 'n_failures', 'n_improperly_formatted', 'n_ignored']
+        kvstr = ', '.join('{}={}'.format(k, getattr(self, k)) for k in keys)
+        return 'CheckResultData({})'.format(kvstr)
+
 
 def _compute_file_checksum_sequential(fd, algo=DEFAULT_ALGO, binary=True):
     hash_obj = hashlib.new(algo)
