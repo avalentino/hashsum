@@ -47,9 +47,9 @@ LOGFMT = '%(levelname)s: %(message)s'
 
 
 DIGEST_LINE_RE = re.compile(
-    r'^\s*(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
+    r'^(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
 DIGEST_LINE_BSD_RE = re.compile(
-    r'^\s*(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
+    r'^(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
 
 
 BLOCKSIZE = 1024 * 1024     # 1MB
