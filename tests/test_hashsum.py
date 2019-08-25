@@ -46,7 +46,7 @@ class ComputeSumTestCase(unittest.TestCase):
     def tearDown(self):
         logging.getLogger().handlers[0].stream = self._old_stream
 
-    def test_binary_01(self):
+    def test_binary(self):
         argv = self.COMMON_OPTIONS + [
             '-a', self.ALGO,
             '-b',
@@ -62,7 +62,7 @@ class ComputeSumTestCase(unittest.TestCase):
 
         self.assertEqual(refdata.strip(), data.strip())
 
-    def test_binary_02(self):
+    def test_binary_auto(self):
         argv = self.COMMON_OPTIONS + [
             '-b',
             'file01.dat', 'file02.dat', 'file03.dat',
@@ -78,7 +78,7 @@ class ComputeSumTestCase(unittest.TestCase):
             self.assertEqual(exitcode, hashsum.EX_OK)
             self.assertTrue('warning' in out.stderr.getvalue().lower())
 
-    def test_binary_03(self):
+    def test_binary_outfile(self):
         argv = self.COMMON_OPTIONS + [
             '-b',
             'file01.dat', 'file02.dat', 'file03.dat',
@@ -157,7 +157,7 @@ class CheckTestCase(unittest.TestCase):
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
-    def test_binary_bsd_01(self):
+    def test_binary_bsd_auto(self):
         argv = self.COMMON_OPTIONS + [
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
         ]
@@ -165,7 +165,7 @@ class CheckTestCase(unittest.TestCase):
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
-    def test_binary_bsd_02(self):
+    def test_binary_bsd_algoname(self):
         argv = self.COMMON_OPTIONS + [
             '-a', self.ALGO,
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
@@ -174,7 +174,7 @@ class CheckTestCase(unittest.TestCase):
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
-    def test_binary_bsd_03(self):
+    def test_binary_bsd_algoname_mismatch(self):
         argv = self.COMMON_OPTIONS + [
             '-a', SHA if SHA != self.ALGO else MD5,
             '-c', os.path.join(DATAPATH, 'MD5SUM_bsd.txt'),
@@ -185,6 +185,22 @@ class CheckTestCase(unittest.TestCase):
         self.assertEqual(exitcode, hashsum.EX_FAILURE)
         self.assertTrue('ERROR' in out.stderr.getvalue())
 
+    def test_binary_bad_format(self):
+        argv = self.COMMON_OPTIONS + [
+            '-a', self.ALGO,
+            '-c', os.path.join(DATAPATH, 'MD5SUM_binary_bad.txt'),
+        ]
+
+        with runin(DATAPATH), TrapOutput(stderr=self.stderr) as out:
+            exitcode = hashsum.main(*argv)
+
+        self.assertEqual(exitcode, hashsum.EX_FAILURE)
+        self.assertIn('file01.dat: OK', out.stdout.getvalue())
+        self.assertIn('file02.dat: BAD_FORMATTING', out.stdout.getvalue())
+        self.assertIn('file03.dat: FAILURE', out.stdout.getvalue())
+        self.assertIn('WARNING: 1 computed checksum do NOT match',
+                      out.stderr.getvalue())
+
     def test_binary_openssl(self):
         argv = self.COMMON_OPTIONS + [
             '-c', os.path.join(DATAPATH, 'SHASUM_openssl.txt'),
@@ -193,15 +209,15 @@ class CheckTestCase(unittest.TestCase):
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_OK)
 
-    def test_binary_openssl_bad(self):
+    def test_binary_openssl_bad_algoname(self):
         argv = self.COMMON_OPTIONS + [
-            '-c', os.path.join(DATAPATH, 'SHASUM_openssl_bad.txt'),
+            '-c', os.path.join(DATAPATH, 'SHASUM_openssl_bad_algoname.txt'),
         ]
         with runin(DATAPATH), TrapOutput():
             exitcode = hashsum.main(*argv)
         self.assertEqual(exitcode, hashsum.EX_FAILURE)
         self.assertIn(
-            'ERROR: unsupported hash type SHA', self.stderr.getvalue())
+            'ERROR: unsupported hash type SH', self.stderr.getvalue())
 
     def test_text(self):
         if sys.platform.startswith('win'):

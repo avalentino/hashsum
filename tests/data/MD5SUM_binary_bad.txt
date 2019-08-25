@@ -1,0 +1,4 @@
+101b455ce70d2e73e1a4d92a3e8c29e1 *file01.dat
+42d256814c3996575669f8ae072c7b02extra *file02.dat
+# comment
+947e1bcfbaf5af8c076e9f4860e590c8 *file03.dat

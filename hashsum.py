@@ -294,8 +294,8 @@ class ChecksumVerifier(object):
         else:
             result = CheckResult.FAILURE
 
-        if not self.status and result in (CheckResult.OK, CheckResult.FAILURE):
-            if (result == CheckResult.FAILURE) or not self.quiet:
+        if not self.status:
+            if (result != CheckResult.OK) or not self.quiet:
                 print('{}: {}'.format(path, result.name.upper()))
 
         return result
