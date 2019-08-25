@@ -12,6 +12,7 @@ hashsum v1.2.3 (in development)
 * new `--failfast` option added to the test CLI
 * improved benchmark script
 * man page updated
+* improved compatibility with `pytest <https://pytest.org>`_
 
 
 hashsum v1.2.2 (15/11/2016)
