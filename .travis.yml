@@ -13,6 +13,7 @@ python:
   - "pypy3"
 
 install:
+  - pip install argcomplete
   - pip install -U coverage
   - pip install enum-compat
   - pip install codecov
