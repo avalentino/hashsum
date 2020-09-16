@@ -49,7 +49,7 @@ LOGFMT = '%(levelname)s: %(message)s'
 DIGEST_LINE_RE = re.compile(
     r'^(?P<digest>\w+) (?P<binary>[ *])(?P<path>.+)$')
 DIGEST_LINE_BSD_RE = re.compile(
-    r'^(?P<algo>\w+)\ ?\((?P<path>.+)\)\ ?= (?P<digest>\w+)$')
+    r'^(?P<algo>\w+) ?\((?P<path>.+)\) ?= (?P<digest>\w+)$')
 
 
 BLOCKSIZE = 1024 * 1024     # 1MB
@@ -60,15 +60,13 @@ DEFAULT_ALGO = 'md5'
 
 
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
-    '''Iterator on file-like objects that read blocks of the specified size
+    """Iterator on file-like objects that read blocks of the specified size
 
     The `fd` parameter must be a binary or text file-like object opened
     for reading.
 
     The `blocksize` parameter defaults to `io.DEFAULT_BUFFER_SIZE`.
-
-    '''
-
+    """
     guard = '' if isinstance(fd, io.TextIOBase) else b''
 
     return iter(functools.partial(fd.read, blocksize), guard)
@@ -319,8 +317,8 @@ class ChecksumVerifier(object):
         if check_result.n_improperly_formatted > 0:
             if self.warn:
                 self._log.warning(
-                '{} improperly formatted checksum line'.format(
-                    check_result.n_improperly_formatted))
+                    '{} improperly formatted checksum line'.format(
+                        check_result.n_improperly_formatted))
             if self.strict:
                 ret = False
 
