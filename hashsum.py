@@ -109,17 +109,20 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
 
 
 class CheckResult(enum.Enum):
-    OK = 0
-    FAILURE = 1
-    BAD_FORMATTING = 2
-    IGNORED = 3
+    OK = 'OK'
+    FAILURE = 'FAILURE'
+    READ_FAILURE = 'READ_FAILURE'
+    BAD_FORMATTING = 'BAD_FORMATTING'
+    IGNORED = 'IGNORED'
 
 
+# TODO: inherit form collections.Counter
 class CheckResultData(object):
-    def __init__(self, n_ok=0, n_failures=0, n_improperly_formatted=0,
-                 n_ignored=0):
+    def __init__(self, n_ok=0, n_failures=0, n_read_failures=0,
+                 n_improperly_formatted=0, n_ignored=0):
         self.n_ok = n_ok
         self.n_failures = n_failures
+        self.n_read_failures = n_read_failures
         self.n_improperly_formatted = n_improperly_formatted
         self.n_ignored = n_ignored
 
@@ -128,6 +131,8 @@ class CheckResultData(object):
             self.n_ok += 1
         elif ret == CheckResult.FAILURE:
             self.n_failures += 1
+        elif ret == CheckResult.READ_FAILURE:
+            self.n_read_failures += 1
         elif ret == CheckResult.BAD_FORMATTING:
             self.n_improperly_formatted += 1
         elif ret == CheckResult.IGNORED:
@@ -136,7 +141,13 @@ class CheckResultData(object):
             raise ValueError('unexpected value: {}'.format(ret))
 
     def __repr__(self):
-        keys = ['n_ok', 'n_failures', 'n_improperly_formatted', 'n_ignored']
+        keys = [
+            'n_ok',
+            'n_failures',
+            'n_read_failures',
+            'n_improperly_formatted',
+            'n_ignored',
+        ]
         kvstr = ', '.join('{}={}'.format(k, getattr(self, k)) for k in keys)
         return 'CheckResultData({})'.format(kvstr)
 
@@ -283,25 +294,30 @@ class ChecksumVerifier(object):
         return path, hexdigest, binary, algo
 
     def process_checksum_file_line(self, line):
-        if len(line) == 0 or line[0] == '#':
+        if len(line.strip()) == 0 or line[0] == '#':
             # support for comments in the digest-file
             return CheckResult.IGNORED
 
         path, hexdigest, binary, algo = self.decode_checksum_file_line(line)
 
-        with io.open(path, 'rb') as fd:
-            hash_obj = self._compute_file_checksum(fd, algo, binary)
-
-        if hash_obj.hexdigest() == hexdigest:
-            result = CheckResult.OK
-        elif len(hash_obj.hexdigest()) != len(hexdigest):
-            result = CheckResult.BAD_FORMATTING
+        try:
+            with io.open(path, 'rb') as fd:
+                hash_obj = self._compute_file_checksum(fd, algo, binary)
+        except OSError:
+            result = CheckResult.READ_FAILURE
+            if not self.quiet:
+                print('{}: FAILED open or read'.format(path))
         else:
-            result = CheckResult.FAILURE
+            if hash_obj.hexdigest() == hexdigest:
+                result = CheckResult.OK
+            elif len(hash_obj.hexdigest()) != len(hexdigest):
+                result = CheckResult.BAD_FORMATTING
+            else:
+                result = CheckResult.FAILURE
 
-        if not self.status:
-            if (result != CheckResult.OK) or not self.quiet:
-                print('{}: {}'.format(path, result.name.upper()))
+            if not self.status:
+                if (result != CheckResult.OK) or not self.quiet:
+                    print('{}: {}'.format(path, result.value))
 
         return result
 
@@ -312,6 +328,13 @@ class ChecksumVerifier(object):
                 self._log.warning(
                     '{} computed checksum do NOT match'.format(
                         check_result.n_failures))
+            ret = False
+
+        if check_result.n_read_failures > 0:
+            if not self.status:
+                self._log.warning(
+                    '{} listed file(s) could not be read'.format(
+                        check_result.n_read_failures))
             ret = False
 
         if check_result.n_improperly_formatted > 0:
@@ -561,7 +584,7 @@ def main(*argv):
     """Main CLI interface."""
 
     # setup logging
-    logging.basicConfig(format=LOGFMT, level=logging.INFO)
+    logging.basicConfig(format=LOGFMT, level=logging.DEBUG)
     logging.captureWarnings(True)
     log = logging.getLogger('hashsum')
 
