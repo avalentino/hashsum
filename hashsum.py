@@ -276,8 +276,8 @@ class ChecksumVerifier(object):
             binary = True if mobj.group('binary') else False
             if self.algo is None:
                 msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
-                # warnings.warn(msg)
-                self._log.warning(msg)
+                warnings.warn(msg)
+                # self._log.warning(msg)
                 algo = DEFAULT_ALGO
             else:
                 algo = self.algo
@@ -374,8 +374,8 @@ class ChecksumCalculator(object):
 
         if self.algo is None:
             msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
-            # warnings.warn(msg)
-            self._log.warning(msg)
+            warnings.warn(msg)
+            # self._log.warning(msg)
             self.algo = DEFAULT_ALGO
 
         if self.tag and not self.binary:
