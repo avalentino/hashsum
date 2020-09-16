@@ -444,7 +444,7 @@ class ChecksumCalculator(object):
 def get_parser():
     """Instantiate the command line argument parser."""
 
-    epilog = 'Copyright (C) 2016-2019, Antonio Valentino'
+    epilog = 'Copyright (C) 2016-2020, Antonio Valentino'
 
     parser = argparse.ArgumentParser(
             prog=PROG, description=__doc__, epilog=epilog)
