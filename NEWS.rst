@@ -5,6 +5,7 @@ hashsum v1.4.0 (UNRELEASED)
 ---------------------------
 
 * Drop support for Python < 3.6.
+* Switch to GitHub Actions for CI.
 
 
 hashsum v1.3.0 (25/08/2019)
