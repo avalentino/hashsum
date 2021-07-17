@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """Compute and check message digest with different hash algorithms.
 
@@ -11,8 +10,6 @@ input mode ('*' for binary, space for text), and name for each FILE.
 [1] https://docs.python.org/3/library/hashlib.html
 """
 
-
-from __future__ import print_function
 
 import io
 import os
@@ -60,7 +57,7 @@ DEFAULT_ALGO = 'md5'
 
 
 def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
-    """Iterator on file-like objects that read blocks of the specified size
+    """Iterate on file-like objects reading blocks of the specified size.
 
     The `fd` parameter must be a binary or text file-like object opened
     for reading.
@@ -74,7 +71,7 @@ def blockiter(fd, blocksize=io.DEFAULT_BUFFER_SIZE):
 
 class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
     def __init__(self, errors='strict'):
-        super(IncrementalNewlineDecoder, self).__init__(errors=errors)
+        super().__init__(errors=errors)
         self.buffer = b''
         self.from_ = os.linesep.encode('ascii')
         self.to = b'\n'
@@ -98,7 +95,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         return output
 
     def reset(self):
-        super(IncrementalNewlineDecoder, self).reset()
+        super().reset()
         self.buffer = b''
 
     def getstate(self):
@@ -117,7 +114,7 @@ class CheckResult(enum.Enum):
 
 
 # TODO: inherit form collections.Counter
-class CheckResultData(object):
+class CheckResultData:
     def __init__(self, n_ok=0, n_failures=0, n_read_failures=0,
                  n_improperly_formatted=0, n_ignored=0):
         self.n_ok = n_ok
@@ -138,7 +135,7 @@ class CheckResultData(object):
         elif ret == CheckResult.IGNORED:
             self.n_ignored += 1
         else:
-            raise ValueError('unexpected value: {}'.format(ret))
+            raise ValueError(f'unexpected value: {ret}')
 
     def __repr__(self):
         keys = [
@@ -148,8 +145,8 @@ class CheckResultData(object):
             'n_improperly_formatted',
             'n_ignored',
         ]
-        kvstr = ', '.join('{}={}'.format(k, getattr(self, k)) for k in keys)
-        return 'CheckResultData({})'.format(kvstr)
+        kvstr = ', '.join(f'{k}={getattr(self, k)}' for k in keys)
+        return f'CheckResultData({kvstr})'
 
 
 def _compute_file_checksum_sequential(fd, algo=DEFAULT_ALGO, binary=True):
@@ -172,7 +169,7 @@ def _compute_file_checksum_sequential(fd, algo=DEFAULT_ALGO, binary=True):
     return hash_obj
 
 
-class HashObjectData(object):
+class HashObjectData:
     def __init__(self, hash_obj):
         self.block_size = hash_obj.block_size
         self.name = hash_obj.name
@@ -208,10 +205,7 @@ def _worker(tasks, results, algo=DEFAULT_ALGO, decoder=None):
 
 
 def _compute_file_checksum_threading(fd, algo=DEFAULT_ALGO, binary=True):
-    try:
-        import queue
-    except ImportError:
-        import Queue as queue
+    import queue
     import threading
 
     if not binary and os.linesep != '\n':
@@ -243,7 +237,7 @@ def _compute_file_checksum_threading(fd, algo=DEFAULT_ALGO, binary=True):
     return result
 
 
-class ChecksumVerifier(object):
+class ChecksumVerifier:
     def __init__(self, algo=None, quiet=False, status=False, warn=False,
                  strict=False, multi_thread=False):
         self.algo = algo
@@ -279,12 +273,12 @@ class ChecksumVerifier(object):
             mobj = DIGEST_LINE_RE.match(line)
             if not mobj:
                 raise ValueError(
-                    'unable to decode digest line: "{}"'.format(line))
+                    f'unable to decode digest line: "{line}"')
             path = mobj.group('path')
             hexdigest = mobj.group('digest')
             binary = True if mobj.group('binary') else False
             if self.algo is None:
-                msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
+                msg = f'no algorithm specified: using {DEFAULT_ALGO!r}'
                 warnings.warn(msg)
                 # self._log.warning(msg)
                 algo = DEFAULT_ALGO
@@ -301,12 +295,12 @@ class ChecksumVerifier(object):
         path, hexdigest, binary, algo = self.decode_checksum_file_line(line)
 
         try:
-            with io.open(path, 'rb') as fd:
+            with open(path, 'rb') as fd:
                 hash_obj = self._compute_file_checksum(fd, algo, binary)
         except OSError:
             result = CheckResult.READ_FAILURE
             if not self.quiet:
-                print('{}: FAILED open or read'.format(path))
+                print(f'{path}: FAILED open or read')
         else:
             if hash_obj.hexdigest() == hexdigest:
                 result = CheckResult.OK
@@ -317,7 +311,7 @@ class ChecksumVerifier(object):
 
             if not self.status:
                 if (result != CheckResult.OK) or not self.quiet:
-                    print('{}: {}'.format(path, result.value))
+                    print(f'{path}: {result.value}')
 
         return result
 
@@ -385,7 +379,7 @@ class ChecksumVerifier(object):
         return result
 
 
-class ChecksumCalculator(object):
+class ChecksumCalculator:
     def __init__(self, algo=None, binary=None, tag=False, multi_thread=False):
         self.algo = algo
         self.binary = binary
@@ -394,7 +388,7 @@ class ChecksumCalculator(object):
         self._log = logging.getLogger('hashsum')
 
         if self.algo is None:
-            msg = 'no algorithm specified: using {!r}'.format(DEFAULT_ALGO)
+            msg = f'no algorithm specified: using {DEFAULT_ALGO!r}'
             warnings.warn(msg)
             # self._log.warning(msg)
             self.algo = DEFAULT_ALGO
@@ -407,10 +401,10 @@ class ChecksumCalculator(object):
     def print_hash_line(self, filename, hash_obj):
         if self.tag:
             algo = hash_obj.name.upper()
-            print('{} ({}) = {}'.format(algo, filename, hash_obj.hexdigest()))
+            print(f'{algo} ({filename}) = {hash_obj.hexdigest()}')
         else:
             marker = '*' if self.binary else ' '
-            print('{} {}{}'.format(hash_obj.hexdigest(), marker, filename))
+            print(f'{hash_obj.hexdigest()} {marker}{filename}')
 
     def _compute_file_checksum(self, fd):
         if self.multi_thread:
@@ -426,49 +420,30 @@ class ChecksumCalculator(object):
 
             for filename in filenames:
                 if os.path.isdir(filename):
-                    self._log.info('{}: is a directory'.format(filename))
+                    self._log.info(f'{filename}: is a directory')
                     continue
 
-                with io.open(filename, 'rb') as fd:
+                with open(filename, 'rb') as fd:
                     hash_obj = self._compute_file_checksum(fd)
 
                 self.print_hash_line(filename, hash_obj)
         else:
             # filenames is None or an empty list
             filename = '-'
-            old_mode = None
 
+            # TODO: check
             # stdin = io.open(sys.stdin.fileno(), mode='rb', closefd=False)
-            if sys.version_info[0] < 3:
-                stdin = sys.stdin
-                if os.linesep != '\n' and self.binary:
-                    try:
-                        import msvcrt
-                        msvcrt.setmode(stdin, os.O_BINARY)
-                    except (ImportError, AttributeError):
-                        raise ValueError(
-                            'binary mode is not supported for stdin on '
-                            'this platform')
-                    else:
-                        old_mode = os.O_TEXT
-            else:
-                stdin = sys.stdin.buffer
-
-            try:
-                hash_obj = self._compute_file_checksum(stdin)
-                self.print_hash_line(filename, hash_obj)
-            finally:
-                if old_mode is not None:
-                    msvcrt.setmode(stdin, old_mode)
+            stdin = sys.stdin.buffer
+            hash_obj = self._compute_file_checksum(stdin)
+            self.print_hash_line(filename, hash_obj)
 
 
 def get_parser():
     """Instantiate the command line argument parser."""
-
     epilog = 'Copyright (C) 2016-2021, Antonio Valentino'
 
-    parser = argparse.ArgumentParser(
-            prog=PROG, description=__doc__, epilog=epilog)
+    parser = argparse.ArgumentParser(prog=PROG, description=__doc__,
+                                     epilog=epilog)
 
     parser.add_argument(
         '-a', '--algorithm', choices=hashlib.algorithms_available,
@@ -519,7 +494,7 @@ def get_parser():
 
     parser.add_argument(
         '--version', action='version',
-        version='%(prog)s v{}'.format(__version__))
+        version=f'%(prog)s v{__version__}')
     parser.add_argument(
         'filenames', nargs='*', metavar='FILE',
         help='name of file to process. '
@@ -534,7 +509,6 @@ def get_parser():
 
 def parse_args(args=None, namespace=None, parser=None):
     """Parse command line arguments."""
-
     if parser is None:
         parser = get_parser()
 
@@ -581,8 +555,6 @@ def parse_args(args=None, namespace=None, parser=None):
 
 
 def main(*argv):
-    """Main CLI interface."""
-
     # setup logging
     logging.basicConfig(format=LOGFMT, level=logging.DEBUG)
     logging.captureWarnings(True)

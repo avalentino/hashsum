@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -83,8 +82,9 @@ def plot_data(testdata):
 
     plt.semilogx(
         x_seq, (y_seq / y_thr - 1) * 100., 'o-', label='Speed up (thr)')
-    plt.semilogx(x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
-             label='Speed up (thr)\nvs max seq speed')
+    plt.semilogx(
+        x_seq, (np.min(y_seq) / y_thr - 1) * 100., 'o-',
+        label='Speed up (thr)\nvs max seq speed')
 
     plt.axvline(x_seq[np.argmin(y_seq)], color='k')
     plt.axvline(x_thr[np.argmin(y_thr)], color='k')
@@ -105,17 +105,17 @@ def main():
         generate_dataset(DATAFILE, DATASIZE)
 
     print('DATAFILE:', DATAFILE)
-    print('DATASIZE: {:.3f} MB'.format(DATASIZE / 1024**2))
+    print(f'DATASIZE: {DATASIZE / 1024**2:.3f} MB')
 
-    print('Test {} hash computetion'.format(ALGO))
+    print(f'Test {ALGO} hash computetion')
 
     functions = (
         '_compute_file_checksum_threading',
         '_compute_file_checksum_sequential',
     )
     multipliers = (
-        8*1024, 4*1024, 2*1024, 1024,
-        512, 256, 128, 64, 32, 16, 8, 4, 2)
+        8 * 1024, 4 * 1024, 2 * 1024, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2,
+    )
     data = collections.defaultdict(dict)
 
     for multiplier in multipliers:
@@ -123,13 +123,14 @@ def main():
 
         for function in functions:
             if 'sequential' in function:
-                expr = 'hashsum.main("-a=%s", "%s")' % (ALGO, DATAFILE)
+                expr = f'hashsum.main("-a={ALGO}", "{DATAFILE}")'
             else:
-                expr = 'hashsum.main("-a=%s", "-m", "%s")' % (ALGO, DATAFILE)
+                expr = 'hashsum.main("-a={}", "-m", "{}")'.format(ALGO,
+                                                                  DATAFILE)
 
             print('function:', function)
             print('blocksize: {:.1f} KB ({} * {})'.format(
-                blocksize/1024, BASEBLOCKSIZE, multiplier))
+                blocksize / 1024, BASEBLOCKSIZE, multiplier))
             print('timeit:', expr)
 
             t = timeit.timeit(
@@ -153,4 +154,3 @@ if __name__ == '__main__':
         main()
     else:
         plot_data(load_data(RESULTFILE))
-

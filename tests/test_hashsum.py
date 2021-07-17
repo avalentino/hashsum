@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 
 import os
 import sys
 import logging
 import unittest
 import warnings
+from io import StringIO
+
 from ._test_utils import (
     TESTDIRPATH, fixpath, runin, TrapOutput, catch_warnings
 )
-
-
-if sys.version_info[0] >= 3:
-    from io import StringIO
-else:
-    from io import BytesIO as StringIO
 
 
 fixpath()

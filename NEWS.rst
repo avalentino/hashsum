@@ -1,10 +1,10 @@
 hashsum changelog
 =================
 
-hashsum v1.3.1 (in development)
--------------------------------
+hashsum v1.4.0 (UNRELEASED)
+---------------------------
 
-* TBW
+* Drop support for Python < 3.6.
 
 
 hashsum v1.3.0 (25/08/2019)

@@ -18,7 +18,6 @@ def get_version():
     return mobj.group('version')
 
 
-install_requires = ['enum34'] if sys.version_info[:2] < (3, 4) else []
 if not sys.platform.startswith('win'):
     data_files = [
         ('share/man/man1', ['man/hashsum.1']),
@@ -43,21 +42,17 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Topic :: Utilities',
         'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',    # deprecated
-        'Programming Language :: Python :: 3.3',    # deprecated
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Operating System :: OS Independent',
     ],
     keywords='checksum hash',
     py_modules=['hashsum'],
-    install_requires=install_requires,
+    install_requires=[],
     extras_require={
         'cli_autocomplete': ['aurgcomplete']
     },
