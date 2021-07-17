@@ -6,7 +6,7 @@ Python drop-in replacement for md5sum, and co.
 **********************************************
 
 :HomePage: https://github.com/avalentino/hashsum
-:Copyright: 2016-2020 Antonio Valentino <antonio dot valentino at tiscali dot it>
+:Copyright: 2016-2021 Antonio Valentino <antonio dot valentino at tiscali dot it>
 
 .. image:: https://img.shields.io/pypi/v/hashsum
     :alt: Latest Version
