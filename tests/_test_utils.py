@@ -27,6 +27,7 @@ def runin(path):
     os.chdir(oldcwd)
 
 
+# @TODO: replace with redirect_stdout and redirect_stderr
 class TrapOutput:
     def __init__(self, stdout=None, stderr=None):
         if stdout is None:
