@@ -59,5 +59,6 @@ target/
 # Temp files
 *~
 
-# PyCharm
+# IDE
 .idea
+.vscode
