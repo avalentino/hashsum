@@ -113,7 +113,7 @@ reporting::
 
 Alternatively it is possible to use::
 
-    $ python3 setyp.py test
+    $ python3 setup.py test
 
 or::
 
