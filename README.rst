@@ -20,9 +20,9 @@ Python drop-in replacement for md5sum, and co.
     :alt: License
     :target: https://pypi.org/project/hashsum
 
-.. image:: https://travis-ci.org/avalentino/hashsum.svg?branch=master
-    :alt: Travis-CI status page
-    :target: https://travis-ci.org/avalentino/hashsum
+.. image:: https://github.com/avalentino/hashsum/actions/workflows/python-package.yml/badge.svg
+    :alt: GHA status page
+    :target: https://github.com/avalentino/hashsum/actions
 
 .. image:: https://codecov.io/gh/avalentino/hashsum/branch/master/graph/badge.svg
     :alt: Coverage Status
@@ -86,7 +86,7 @@ Package testing
 The recommended way to test the package is::
 
     $ python3 -m tests -v
-    
+
 it also prints some basic system information that can be sued for bug
 reporting::
 
@@ -100,7 +100,7 @@ reporting::
 
     test_binary (tests.test_hashsum.CheckTestCase) ... ok
     test_binary_bad_format (tests.test_hashsum.CheckTestCase) ... ok
-    
+
     [...]
 
     test_binary_outfile (tests.test_hashsum.ThreadedComputeSumTestCase) ... ok
@@ -122,7 +122,7 @@ or::
 or e.g. `pytest <https://pytest.org>`_::
 
     $ python3 -m pytest -v
-    
+
 Please note that the default configuration for "pytest" is stored into the
 `setup.cfg` file in the root directory of the source package::
 
