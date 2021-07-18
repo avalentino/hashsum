@@ -1,7 +1,7 @@
 hashsum changelog
 =================
 
-hashsum v1.4.0 (UNRELEASED)
+hashsum v1.4.0 (18/07/2021)
 ---------------------------
 
 * Drop support for Python < 3.6.
