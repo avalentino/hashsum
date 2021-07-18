@@ -40,10 +40,11 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=80 --statistics
-    - name: install hashsum
+    - name: Build and install hashsum
       run: |
         python setup.py sdist
-        python -m pip install dist/hashsum-*.tar.gz
+        python -m pip wheel -w dist dist/hashsum-*.tar.gz
+        python -m pip install dist/hashsum*.whl
     - name: Test CLI
       if: ${{ matrix.os != 'windows-latest' }}
       run: |
@@ -54,3 +55,8 @@ jobs:
         pytest -Werror --cov=hashsum --cov-report=xml
     - name: Codecov
       uses: codecov/codecov-action@v1
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist
