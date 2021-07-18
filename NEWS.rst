@@ -8,6 +8,8 @@ hashsum v1.4.0 (UNRELEASED)
 * Switch to GitHub Actions for CI.
 * Fix verification of checksums in text mode on Windows.
 * Re-factorize and simplify the test code.
+* Add buildsystem support (`pyproject.toml`)
+* Switch to declarative setup configuration (`setup.cfg`).
 
 
 hashsum v1.3.0 (25/08/2019)
@@ -61,7 +63,7 @@ hashsum v1.1 (30/01/2016)
 * All `Exceptions` are now trapped in the `main` function
 * Added unit testing
 * Code cleanup
-* Added :file:`NEWS.rst` file
+* Added `NEWS.rst` file
 * Added man page
 * Improved command line help (also fixed some typos)
 * Enabled automatic testing with travis-ci

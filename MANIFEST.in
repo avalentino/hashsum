@@ -1,3 +1,5 @@
 include LICENSE.txt NEWS.rst
+exclude .git*
 recursive-include man *
 recursive-include tests *.py *.dat *.txt
+prune .github

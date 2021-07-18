@@ -88,40 +88,42 @@ The recommended way to test the package is to use
 
     $ python3 -m pytest -v
 
-============================ test session starts ============================
-platform linux -- Python 3.9.5, pytest-6.0.2, py-1.10.0, pluggy-0.13.0
-hashsum version:      1.4.0.dev0
-Platform:             Linux-5.11.0-24-generic-x86_64-with-glibc2.33
-Byte-ordering:        little
-Default encoding:     utf-8
-Default FS encoding:  utf-8
-Default locale:       ('it_IT', 'UTF-8')
-rootdir: /home/antonio/projects/hashsum, configfile: setup.cfg
-plugins: hypothesis-5.43.3, remotedata-0.3.2, doctestplus-0.9.0,
-         openfiles-0.5.0, flake8-1.0.6, filter-subpackage-0.1.1, cov-2.10.1
-collected 26 items
+    ========================== test session starts ==========================
+    platform linux -- Python 3.9.5, pytest-6.0.2, py-1.10.0, pluggy-0.13.0
+    hashsum version:      1.4.0.dev0
+    Platform:             Linux-5.11.0-24-generic-x86_64-with-glibc2.33
+    Byte-ordering:        little
+    Default encoding:     utf-8
+    Default FS encoding:  utf-8
+    Default locale:       ('it_IT', 'UTF-8')
+    rootdir: /home/antonio/projects/hashsum, configfile: setup.cfg
+    plugins: hypothesis-5.43.3, remotedata-0.3.2, doctestplus-0.9.0,
+            openfiles-0.5.0, flake8-1.0.6, filter-subpackage-0.1.1, cov-2.10.1
+    collected 26 items
 
-tests/test_hashsum.py::ComputeSumTestCase::test_binary PASSED       [  3%]
-tests/test_hashsum.py::ComputeSumTestCase::test_binary_auto PASSED  [  7%]
+    tests/test_hashsum.py::ComputeSumTestCase::test_binary PASSED       [  3%]
+    tests/test_hashsum.py::ComputeSumTestCase::test_binary_auto PASSED  [  7%]
 
-[...]
+    [...]
 
-tests/test_hashsum.py::ThreadedCheckTestCase::test_text PASSED      [100%]
+    tests/test_hashsum.py::ThreadedCheckTestCase::test_text PASSED      [100%]
 
-============================ 26 passed in 0.29s =============================
+    ========================== 26 passed in 0.29s ===========================
+
 
 Please note that some basic system information that can be sued for bug
 reporting are also printed on the screen.
 
-Alternatively it is possible to use::
-
-    $ python3 -m unittest -v tests/test_hashsum.py
-
-Please note that the default configuration for "pytest" is stored into the
-`setup.cfg` file in the root directory of the source package::
+The default configuration for "pytest" is stored into the `setup.cfg`
+file in the root directory of the source package::
 
     [tool:pytest]
     addopts = -p no:warnings -p no:logging
+
+
+Alternatively it is possible to use::
+
+    $ python3 -m unittest -v tests/test_hashsum.py
 
 
 License
