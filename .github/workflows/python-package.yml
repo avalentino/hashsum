@@ -53,7 +53,7 @@ jobs:
         hashsum -h
     - name: Test with pytest
       run: |
-        pytest -Werror --cov=hashsum --cov-report=xml
+        pytest -Werror --cov=hashsum --cov-report=xml -v
     - name: Codecov
       uses: codecov/codecov-action@v1
     - name: Archive artifacts
