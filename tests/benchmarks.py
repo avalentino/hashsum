@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import timeit
 import collections
-
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
 DATAFILE = 'hashsum_test_data.dat'
@@ -150,7 +146,15 @@ def main():
 
 
 if __name__ == '__main__':
-    if True:
-        main()
-    else:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-p', '--plot', action='store_true',
+        help='plot results stored on disk without actually running '
+             'the benchmark')
+    args = parser.parse_args()
+    if args.plot:
         plot_data(load_data(RESULTFILE))
+    else:
+        main()
