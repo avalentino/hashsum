@@ -45,6 +45,7 @@ jobs:
         python setup.py sdist --formats=gztar
         python -m pip wheel -w dist dist/hashsum-*.tar.gz
         python -m pip install dist/hashsum*.whl
+      shell: bash
     - name: Test CLI
       if: ${{ matrix.os != 'windows-latest' }}
       run: |
