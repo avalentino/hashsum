@@ -1,6 +1,13 @@
 hashsum changelog
 =================
 
+hashsum v1.4.1 (18/07/2021)
+---------------------------
+
+* Fix the wheel generation: generated wheel are not universal,
+  they only work with Python 3.6 and higher
+
+
 hashsum v1.4.0 (18/07/2021)
 ---------------------------
 
