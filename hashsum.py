@@ -276,7 +276,7 @@ class ChecksumVerifier:
                     f'unable to decode digest line: "{line}"')
             path = mobj.group('path')
             hexdigest = mobj.group('digest')
-            binary = True if mobj.group('binary') else False
+            binary = True if mobj.group('binary') == '*' else False
             if self.algo is None:
                 msg = f'no algorithm specified: using {DEFAULT_ALGO!r}'
                 warnings.warn(msg)
