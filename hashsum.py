@@ -85,7 +85,7 @@ class IncrementalNewlineDecoder(codecs.IncrementalDecoder):
         self.buffer = b''
         if len(self.from_) > 1:
             assert(len(self.from_) == 2)
-            lastchar = self.from_[-2:-2]
+            lastchar = self.from_[-2:-1]
             if output.endswith(lastchar) and not final:
                 output = output[:-1]
                 self.buffer = lastchar
