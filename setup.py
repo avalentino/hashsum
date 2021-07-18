@@ -52,7 +52,6 @@ setup(
     ],
     keywords='checksum hash',
     py_modules=['hashsum'],
-    install_requires=[],
     extras_require={
         'cli_autocomplete': ['aurgcomplete']
     },
@@ -63,5 +62,4 @@ setup(
             'hashsum=hashsum:main',
         ],
     },
-    test_suite='tests.suite',
 )
