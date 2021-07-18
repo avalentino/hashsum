@@ -38,7 +38,7 @@ else:
     PYTHON_ARGCOMPLETE_OK = True
 
 
-__version__ = '1.4.1'
+__version__ = '1.4.2.dev0'
 PROG = os.path.splitext(os.path.basename(__file__))[0]
 LOGFMT = '%(levelname)s: %(message)s'
 
