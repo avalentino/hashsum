@@ -448,6 +448,7 @@ class ChecksumCalculator:
 
             # TODO: handle keyboard interrupts
             for future in as_completed(futures):
+                filename = futures[future]
                 try:
                     hash_obj = future.result()
                 except Exception as exc:
