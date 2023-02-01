@@ -22,6 +22,7 @@ import logging
 import argparse
 import warnings
 import functools
+from concurrent.futures import ThreadPoolExecutor as PoolExecutor, as_completed
 
 try:
     from os import EX_OK
@@ -51,6 +52,7 @@ DIGEST_LINE_BSD_RE = re.compile(
 
 BLOCKSIZE = 1024 * 1024     # 1MB
 _QUEUE_LEN = 50             # max 50MB
+_N_IO_QUEUES = 3
 
 
 DEFAULT_ALGO = 'md5'
@@ -408,25 +410,61 @@ class ChecksumCalculator:
 
     def _compute_file_checksum(self, fd):
         if self.multi_thread:
-            return _compute_file_checksum_threading(fd, self.algo, self.binary)
+            compute_file_checksum = _compute_file_checksum_threading
         else:
-            return _compute_file_checksum_sequential(fd, self.algo,
-                                                     self.binary)
+            compute_file_checksum =  _compute_file_checksum_sequential
+
+        if isinstance(fd, (bytes, str, os.PathLike)):
+            close = True
+            fd = open(fd, "rb")
+        else:
+            close = False
+
+        try:
+            return compute_file_checksum(fd, self.algo, self.binary)
+        finally:
+            if close:
+                fd.close()
+
+    def _compute_checksums_sequential(self, filenames):
+        for filename in filenames:
+            if os.path.isdir(filename):
+                self._log.info(f'{filename}: is a directory')
+                continue
+
+            hash_obj = self._compute_file_checksum(filename)
+            self.print_hash_line(filename, hash_obj)
+
+    def _compute_checksums_parallel(self, filenames):
+        with PoolExecutor(max_workers=5) as executor:
+            futures = {}
+            for filename in filenames:
+                if os.path.isdir(filename):
+                    self._log.info(f'{filename}: is a directory')
+                    continue
+
+                future = executor.submit(self._compute_file_checksum, filename)
+                futures[future] = filename
+
+            # TODO: handle keyboard interrupts
+            for future in as_completed(futures):
+                try:
+                    hash_obj = future.result()
+                except Exception as exc:
+                    self._log.exception(exc, exc_info=False)
+                    self._log.debug(exc, exc_info=True)
+                else:
+                    self.print_hash_line(filename, hash_obj)
 
     def compute_checksums(self, filenames):
         if filenames:
             if isinstance(filenames, str):
                 filenames = [filenames]
 
-            for filename in filenames:
-                if os.path.isdir(filename):
-                    self._log.info(f'{filename}: is a directory')
-                    continue
-
-                with open(filename, 'rb') as fd:
-                    hash_obj = self._compute_file_checksum(fd)
-
-                self.print_hash_line(filename, hash_obj)
+            if self.multi_thread:
+                return self._compute_checksums_parallel(filenames)
+            else:
+                return self._compute_checksums_sequential(filenames)
         else:
             # filenames is None or an empty list
             filename = '-'
